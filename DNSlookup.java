@@ -50,6 +50,12 @@ public class DNSlookup {
 		byte[] byteArrayBuffer = new byte[bufferSize];
 		byteArrayBuffer = Files.readAllBytes(Paths.get("DNSInitialQuery.bin"));
 		
+		Random r = new Random();
+		int queryId = r.nextInt(126);
+		byteArrayBuffer[0] = (byte) queryId;
+		queryId = r.nextInt(126);
+		byteArrayBuffer[1] = (byte) queryId;
+		
         DatagramPacket packet = new DatagramPacket(byteArrayBuffer, byteArrayBuffer.length, rootNameServer, 53);
         datagramSocket.send(packet);
      
