@@ -19,6 +19,8 @@ c/http_client
 *.jar
 *.war
 *.ear
+*.classpath
+*.project
 
 # Common text editor backup files
 *~
