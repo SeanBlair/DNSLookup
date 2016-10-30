@@ -1,8 +1,11 @@
-
+import java.io.*;
+import java.net.*;
+import java.util.*;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Random;
-
+import java.nio.file.Files;
+import java.nio.file.Paths;
 /**
  * 
  */
@@ -18,6 +21,7 @@ public class DNSlookup {
 	static final int MIN_PERMITTED_ARGUMENT_COUNT = 2;
 	static boolean tracingOn = false;
 	static InetAddress rootNameServer;
+	static int bufferSize = 512;
 	
 	/**
 	 * @param args
@@ -39,6 +43,33 @@ public class DNSlookup {
 				tracingOn = true;
 		
 		// Start adding code here to initiate the lookup
+		
+		
+		DatagramSocket datagramSocket = new DatagramSocket();
+		
+		byte[] byteArrayBuffer = new byte[bufferSize];
+		byteArrayBuffer = Files.readAllBytes(Paths.get("DNSInitialQuery.bin"));
+		
+        DatagramPacket packet = new DatagramPacket(byteArrayBuffer, byteArrayBuffer.length, rootNameServer, 53);
+        datagramSocket.send(packet);
+     
+        
+        
+        packet = new DatagramPacket(byteArrayBuffer, byteArrayBuffer.length);
+        datagramSocket.receive(packet);
+ 
+
+        response = new DNSResponse(byteArrayBuffer, bufferSize);
+        
+        
+        //will have to decode here if encoded...
+        
+        String received = Arrays.toString(byteArrayBuffer);
+        System.out.println("Received this response from DNS server: \n" + received);
+        
+        datagramSocket.close();
+		
+		System.out.println("Hey dude, don't let me down..");
 		
 	}
 
