@@ -116,6 +116,8 @@ public class DNSlookup {
 		// send packet
         packet = new DatagramPacket(byteArrayBuffer, byteArrayBuffer.length, rootNameServer, dnsPort); //
         datagramSocket.send(packet);
+        String sent = Arrays.toString(byteArrayBuffer);
+        System.out.println("Sent this DNSQuery to the DNS server: \n" + sent);
      
         // receive response
         // TODO implement time out check (5 seconds??)
