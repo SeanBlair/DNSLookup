@@ -38,15 +38,37 @@ public class DNSResponse {
 	    // The following are probably some of the things 
 	    // you will need to do.
 	    // Extract the query ID
-
+		
+		// int consisting of the first two bytes of response
+		// has to be equal to query id.. (check??)
+		queryID = (data[0] << 8) | data[1];
+		
 	    // Make sure the message is a query response and determine
 	    // if it is an authoritative response or note
+		
+		
+		boolean isResponse = data[2] < 0;
 
-	    // determine answer count
+		if (isResponse) {
+			authoritative = ((data[2] >> 2) & 0x1) == 1;
 
-	    // determine NS Count
+		    // determine answer count
+			answerCount = (data[4] << 8) | data[5];
+	
+		    // determine NS Count
+			nsCount = (data[6] << 8) | data[7];
+	
 
-	    // determine additional record count
+		    // determine additional record count
+			additionalCount = (data[8] << 8) | data[9];
+			
+		}
+
+		
+
+
+
+	
 
 	    // Extract list of answers, name server, and additional information response 
 	    // records
@@ -55,6 +77,11 @@ public class DNSResponse {
 
     // You will probably want a methods to extract a compressed FQDN, IP address
     // cname, authoritative DNS servers and other values like the query ID etc.
+	
+	
+	public int getQueryID() {
+		return queryID;
+	}
 
 
     // You will also want methods to extract the response records and record
