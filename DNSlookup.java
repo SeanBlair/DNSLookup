@@ -59,7 +59,7 @@ public class DNSlookup {
 		// Start adding code here to initiate the lookup
 		
 		datagramSocket = new DatagramSocket();
-		requestBuffer = new byte[fqdnLength + 20]; // about 20 additional bytes...
+		requestBuffer = new byte[fqdnLength + 18]; // 18 additional bytes for the hard-coded fields and random id. 
 
 // for comparing with given example query.
 //		byte[] exampleQuery = new byte[bufferSize];
@@ -131,7 +131,7 @@ public class DNSlookup {
         datagramSocket.receive(packet);
  
         // not using this yet...
-        response = new DNSResponse(responseBuffer, responseBufferSize);
+        response = new DNSResponse(responseBuffer, responseBufferSize, fqdn, fqdnLength);
         
         
         // for viewing resulting dns response byte array.
