@@ -23,11 +23,14 @@ public class DNSlookup {
 	static boolean tracingOn = false;
 	static InetAddress rootNameServer;
 	
+	static byte[] requestBuffer;
+	int index = 0;
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
 		DNSResponse response;
+		long queryID;
 		
 		int argCount = args.length;
 		
@@ -40,7 +43,7 @@ public class DNSlookup {
 		int dnsPort = 53;
 		
 		int responseBufferSize = 512;
-		byte[] requestBuffer;
+		
 		byte[] responseBuffer;
 		int index = 0;
 		
@@ -50,6 +53,7 @@ public class DNSlookup {
 		}
 
 		rootNameServer = InetAddress.getByName(args[0]);
+		
 		fqdn = args[1];
 		fqdnLength = fqdn.length();
 		
@@ -71,10 +75,12 @@ public class DNSlookup {
 		// assign a random number as queryId
 		// TODO look into a more complete implementation
 		Random r = new Random();
-		int queryId = r.nextInt(126); 
-		requestBuffer[index++] = (byte) queryId;
-		queryId = r.nextInt(255);
-		requestBuffer[index++] = (byte) queryId;
+		int id = r.nextInt(126); 
+		requestBuffer[index++] = (byte) id;
+		id = r.nextInt(255);
+		requestBuffer[index++] = (byte) id;
+		
+		queryID = getUInt16(0);
 		
 		// set next 16 bits to 0
 		requestBuffer[index++] = 0;
@@ -117,12 +123,17 @@ public class DNSlookup {
 		requestBuffer[index++] = 1;
 		
 		// send packet
-		// TODO figure out how to only send the required ammount of bytes (fqdn + the other bytes (fixed size))
-		// maybe using a different byte[] for request and response.
+		
+		// start printing output
+		System.out.println("\n\nQuery ID     " + queryID + " " + fqdn + " --> " + rootNameServer.getHostAddress());
+		 
+		
         packet = new DatagramPacket(requestBuffer, requestBuffer.length, rootNameServer, dnsPort); //
         datagramSocket.send(packet);
-        String sent = Arrays.toString(requestBuffer);
-        System.out.println("Sent this DNSQuery to the DNS server: \n" + sent);
+        
+        // for looking at sent byte array
+        //String sent = Arrays.toString(requestBuffer);
+        //System.out.println("Sent this DNSQuery to the DNS server: \n" + sent);
      
         // receive response
         // TODO implement time out check (5 seconds??)
@@ -130,18 +141,30 @@ public class DNSlookup {
         packet = new DatagramPacket(responseBuffer, responseBuffer.length);
         datagramSocket.receive(packet);
  
-        // not using this yet...
         response = new DNSResponse(responseBuffer, responseBufferSize, fqdn, fqdnLength);
+        response.printResponse();
         
         
         // for viewing resulting dns response byte array.
-        String received = Arrays.toString(responseBuffer);
-        System.out.println("Received this response from DNS server: \n" + received);
+        //String received = Arrays.toString(responseBuffer);
+        //System.out.println("Received this response from DNS server: \n" + received);
         
         datagramSocket.close();
 		
-		System.out.println("Hey dude, it looks like it's working...");	
+		System.out.println("\nHey dude, it looks like it's working...");	
 	}
+	// based on stack overflow post
+	private static long byteAsULong(byte b) {
+	    return ((long)b) & 0x00000000000000FFL; 
+	}
+
+	// based on stack overflow post
+	private static long getUInt16(int index ) {
+		long value = byteAsULong(requestBuffer[index]) << 8 | (byteAsULong(requestBuffer[index + 1]));
+		return value;
+	}
+	
+	
 
 	private static void usage() {
 		System.out.println("Usage: java -jar DNSlookup.jar rootDNS name [-t]");

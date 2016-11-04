@@ -24,22 +24,23 @@ public class DNSResponse {
     private int fqdnLength = 0;
     
     private long answerCount = 0;          // number of answers  
-    private String[] answers;
+    private Resource[] answers;
     
     private long nameServerCount = 0;              // number of nscount response records
-    private String[] nameServers;
+    private Resource[] nameServers;
     
     private long additionalRecordCount = 0;      // number of additional (alternate) response records
-    private String[] additionalRecords;
+    private Resource[] additionalRecords;
     
     private int index = 0;
 
     // Note you will almost certainly need some additional instance variables.
 
+    
     // When in trace mode you probably want to dump out all the relevant information in a response
-
 	void dumpResponse() {
 
+		// not sure what this is supposed to do...
 		// probably simply store the text we need to display
 		// alternatively, could simply store whole DNSResponse object??
 		//		this would allow more options with more data...
@@ -112,17 +113,12 @@ public class DNSResponse {
 	    // Extract list of answers, name server, and additional information response 
 	    // records
 		
-		// parse ...everything?
-
-		//should look in Answers before parsing name server records?
 		
 		parseAnswers();
+
+		parseNameServerRecords();
 		
-		
-		//parseNameServerRecords();
-		
-		// what the hell are these for??
-		
+		// seems to be broken...
 		//parseAdditionalRecords();
 		
 
@@ -136,21 +132,46 @@ public class DNSResponse {
     // cname, authoritative DNS servers and other values like the query ID etc.
 	
 	
-	// creates an array of strings representing each answer resource
+	
+	// creates an array of Resource objects representing each Additional Record resource
 	// increments responseData index to beginning of next section.
-	private void parseAnswers() {
-		if (answerCount > 0) {
-			answers = new String[(int) answerCount];
-			for (int i = 0; i < answerCount; i++) { 
-				answers[i] = parseResource();
+	private void parseAdditionalRecords() {
+		if (additionalRecordCount > 0) {
+			additionalRecords = new Resource[(int) additionalRecordCount];
+			for (int i = 0; i < additionalRecordCount; i++) {
+				additionalRecords[1] = parseResource();
+			}
+		}	
+	}
+	
+
+	// creates an array of Resource objects representing each Nameserver resource
+	// increments responseData index to beginning of next section.
+	private void parseNameServerRecords() {
+		if (nameServerCount > 0) {
+			nameServers = new Resource[(int) nameServerCount];
+			for (int i = 0; i < nameServerCount; i++) { 
+				nameServers[i] = parseResource();	
 			}
 		}
 	}
 
-	// returns a string representing a resource record
+	// creates an array of Resource objects representing each Answer resource
+	// increments responseData index to beginning of next section.
+	private void parseAnswers() {
+		if (answerCount > 0) {
+			answers = new Resource[(int) answerCount];
+			for (int i = 0; i < answerCount; i++) { 
+				answers[i] = parseResource();			
+			}
+		}
+	}
+
+	// returns a Resource object representing a resource record
 	// increments responseData index to beginning of next resource
-	
-	private String parseResource() {
+	private Resource parseResource() {
+		Resource resource;
+		
 		String resourceName = parseWord();
 		
 		long resourceType = getUInt16(index);
@@ -161,34 +182,27 @@ public class DNSResponse {
 		index += 4;
 		long resourceDataLength = getUInt16(index);
 		index += 2;
-		//String resourceData = parseWord();
+		// this needs work, not sure what logic to check before reading data...
+		String resourceData = parseWord();
 		
-		StringBuilder resourceString = new StringBuilder();
-		resourceString.append("Resource Name: " + resourceName);
-		resourceString.append(" Resource Type: " + resourceType);
-		resourceString.append(" Resource Class: " + resourceClass);
-		resourceString.append(" Resource TTL: " + resourceTTL);
-		resourceString.append(" Resource Data Length: " + resourceDataLength);
-		//resourceString.append(" Resource Data: " + resourceData);
+		resource = new Resource(resourceName, resourceType, resourceClass, resourceTTL, resourceDataLength, resourceData);
 		
-		return resourceString.toString();
+		return resource;
 	}
 
-	// returns a string terminated by 0
+	// returns a string from responseData terminated by 0
 	// increment responseData index to beginning of next section.
 	private String parseWord() {
 		String word = "";
 		int size = responseData[index];
+		
 		if (size != 0) {
+			
 			if (size < 0) {
 				long pointerValue = getUInt16(index); 
 				index += 2;              				// increment past second pointer byte.
-				
-				long x = 1;
-				long y = x & 0x1L;
-				
 				long offset = (pointerValue & 0x000000003fffL);  
-				word = parsePointerWord((int) offset);
+				word = parsePointerWord(offset);
 				
 			} else {
 				index++; 								// increment past size byte
@@ -197,32 +211,42 @@ public class DNSResponse {
 				index += size;							// increment past size of label
 				word += parseWord();
 			}
+		} else {
+			index++;									// increment past size byte
+			
 		}
-		return word + " ";
+		
+		// remove period from end of string
+		if (!word.equals("")) {
+			if (word.substring(word.length() - 1, word.length()).equals(".")) {
+				word = word.substring(0, word.length() - 1);
+			}			
+		}
+		return word;
 	}
 
 	// returns string terminated by 0
 	// does not mutate responseData index
-	private String parsePointerWord(int idx) {
+	private String parsePointerWord(long idx) {
 		String word = "";
-		int size = responseData[idx];
+		int size = responseData[(int) idx];
 		if (size != 0) {
 			if (size < 0) {
-				long pointerValue = getUInt16(idx);
+				long pointerValue = getUInt16((int) idx);
 				long offset = (pointerValue & 0x3fff);  
 				word = parsePointerWord((int) offset);
 				
 			} else {
 				idx++;
-				String label = parseLabel(idx, size);
+				String label = parseLabel((int) idx, size);
 				word += label;
 				word += parsePointerWord(idx + size);
 			}
 		}
-		return word + " ";
+		return word;
 	}
 
-	// returns label Ex: www.  ubc.)
+	// returns label Ex: www.  dude.
 	private String parseLabel(int idx, int size) {
 		String label = "";
 		for (int i = 0; i < size; i++) {
@@ -248,6 +272,35 @@ public class DNSResponse {
 	private long getUInt16(int index ) {
 		long value = byteAsULong(responseData[index]) << 8 | (byteAsULong(responseData[index + 1]));
 		return value;
+	}
+
+	public void printResponse() {
+		System.out.println("Response ID: " + queryID + " Authoritative " + authoritative);
+		//printAnswers();
+		printNameServers();
+		//printAdditionalInfo();
+	}
+
+	private void printAdditionalInfo() {
+		System.out.println("  Additional Information (" + answerCount + ")");
+		for (Resource record : additionalRecords) {
+			record.print();
+		}
+	}
+
+	private void printNameServers() {
+		System.out.println("  Nameservers (" + answerCount + ")");
+		for (Resource nameServer : nameServers) {
+			nameServer.print();
+			
+		}
+	}
+
+	private void printAnswers() {
+		System.out.println("  Answers (" + answerCount + ")");
+		for (Resource answer : answers) {
+			answer.print();
+		}
 	}
 	
     // You will also want methods to extract the response records and record
