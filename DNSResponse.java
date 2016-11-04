@@ -119,7 +119,7 @@ public class DNSResponse {
 		parseNameServerRecords();
 		
 		// seems to be broken...
-		//parseAdditionalRecords();
+		parseAdditionalRecords();
 		
 
 		// dump records... (create entry for -t option)
@@ -139,7 +139,7 @@ public class DNSResponse {
 		if (additionalRecordCount > 0) {
 			additionalRecords = new Resource[(int) additionalRecordCount];
 			for (int i = 0; i < additionalRecordCount; i++) {
-				additionalRecords[1] = parseResource();
+				additionalRecords[i] = parseResource();
 			}
 		}	
 	}
@@ -183,11 +183,47 @@ public class DNSResponse {
 		long resourceDataLength = getUInt16(index);
 		index += 2;
 		// this needs work, not sure what logic to check before reading data...
-		String resourceData = parseWord();
-		
+		String resourceData;
+		if (resourceType == 1) {  // type A : host ip address.
+			resourceData = parseIpAddress();
+		} else if (resourceType == 28) { // type AAAA ipv6 address
+			resourceData = parseIpv6Address();
+		} else {
+			resourceData = parseWord();
+		}
 		resource = new Resource(resourceName, resourceType, resourceClass, resourceTTL, resourceDataLength, resourceData);
-		
 		return resource;
+	}
+
+	// returns ipv6 address and increments the responseData index.
+	private String parseIpv6Address() {
+		String address = "";
+		for (int i = 0; i < 8; i++) {
+			String octet = "";
+			for (int j = 0; j < 2; j++) {
+				String nibble = "";
+				long x = byteAsULong(responseData[index++]);
+				nibble = Long.toHexString(x & 0xf);
+				x = x >> 4;
+				nibble = Long.toHexString(x & 0xf) + nibble;
+				octet += nibble;
+			}
+			octet += ":";
+			address += octet;
+		}	
+	address = address.substring(0, address.length() - 1);
+	return address;
+	}
+
+	// returns ip address and increments responseData index
+	private String parseIpAddress() {
+		String address = "";
+		for (int i = 0; i < 4; i++) {
+			long x = byteAsULong(responseData[index++]);
+			address += x + ".";
+		}
+		address = address.substring(0, address.length() - 1);
+		return address;
 	}
 
 	// returns a string from responseData terminated by 0
@@ -276,30 +312,38 @@ public class DNSResponse {
 
 	public void printResponse() {
 		System.out.println("Response ID: " + queryID + " Authoritative " + authoritative);
-		//printAnswers();
+		printAnswers();
 		printNameServers();
-		//printAdditionalInfo();
+		printAdditionalInfo();
 	}
 
 	private void printAdditionalInfo() {
-		System.out.println("  Additional Information (" + answerCount + ")");
-		for (Resource record : additionalRecords) {
-			record.print();
+		System.out.println("  Additional Information (" + additionalRecordCount + ")");
+		if (additionalRecordCount > 0) {
+			for (Resource record : additionalRecords) {
+				record.print();
+			}	
 		}
+		
 	}
 
 	private void printNameServers() {
-		System.out.println("  Nameservers (" + answerCount + ")");
-		for (Resource nameServer : nameServers) {
-			nameServer.print();
-			
+		System.out.println("  Nameservers (" + nameServerCount + ")");
+		if (nameServerCount > 0) {
+			for (Resource nameServer : nameServers) {
+				nameServer.print();
+				
+			}	
 		}
+		
 	}
 
 	private void printAnswers() {
 		System.out.println("  Answers (" + answerCount + ")");
-		for (Resource answer : answers) {
-			answer.print();
+		if (answerCount > 0) {
+			for (Resource answer : answers) {
+				answer.print();
+			}	
 		}
 	}
 	
