@@ -399,6 +399,14 @@ public class DNSResponse {
 		}
 		return answer;
 	}
+	
+	public boolean isAnswerCNAME() {
+		boolean b = false;
+		if (answerCount > 0) {
+			b = (answers[0].getType() == 5); // CNAME = 5
+		}
+		return b;
+	}
 }
 
 
