@@ -35,9 +35,8 @@ public class DNSQuery {
 	 * @param args
 	 */
 	public void query(String hostServer, String fullyQualifiedDomainName) throws SocketException, Exception {
-		if(numQueries == 30) {
-			//TODO
-			return;
+		if(numQueries >= 30) {
+			exitProgram(originalFQDN + " -3 0.0.0.0");
 		}
 		this.numQueries++;
 		InetAddress rootNameServer = InetAddress.getByName(hostServer);
@@ -63,9 +62,8 @@ public class DNSQuery {
         } catch (SocketTimeoutException timeoutException) {
         	timeouts++;
         	
-        	if(timeouts == 2) {       		
-        		printProgramOutput(originalFQDN + " -2 0.0.0.0");
-        		System.exit(0);
+        	if(timeouts == 2) {  
+        		exitProgram(originalFQDN + " -2 0.0.0.0");
         	}
         	this.query(hostServer, fqdn);
         }
@@ -101,6 +99,11 @@ public class DNSQuery {
 		}
 	}
 	
+	private void exitProgram(String string) {
+		printProgramOutput(string);
+		System.exit(0);	
+	}
+
 	private void printProgramOutput(String string) 
 	{if (tracingOn) {
     	for (String line : trace) {
