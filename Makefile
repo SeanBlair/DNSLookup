@@ -2,6 +2,7 @@ all:
 	javac DNSlookup.java
 	javac DNSResponse.java
 	javac Resource.java
+	javac DNSQuery.java
 	
 	jar cvfe DNSlookup.jar DNSlookup *.class
 
