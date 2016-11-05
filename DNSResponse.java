@@ -13,13 +13,11 @@ import java.util.ArrayList;
 public class DNSResponse {
 	
 	private byte[] responseData;
-	private int responseArrayLength;
     
 	private long queryID;                  // this is for the response it must match the one in the request 
 //    private boolean decoded = false;      // Was this response successfully decoded
     private boolean authoritative = false;// Is this an authoritative record
     
-    private String fullyQualifiedDomainName;
     private int fqdnLength = 0;
     
     private long answerCount = 0;          // number of answers  
@@ -54,8 +52,6 @@ public class DNSResponse {
 
 	public DNSResponse (byte[] data, int len, String fqdn, int fqdnLen) {
 		responseData = data;
-		responseArrayLength = len;
-	    fullyQualifiedDomainName = fqdn;
 	    fqdnLength = fqdnLen;
 	    
 	    // Extract the query ID
@@ -225,7 +221,6 @@ public class DNSResponse {
 			}
 		} else {
 			index++;									// increment past size byte
-			
 		}
 		
 		// remove period from end of string
@@ -364,26 +359,18 @@ public class DNSResponse {
 		return additionalRecordCount == 0;
 	}
 	
-	// returns IP for NameServer or null if invalid;
+	// returns IP for NameServer and null if invalid
 	public String getValidNameServerIP() {
-		String ip = null;		
-		if (additionalRecordCount > 0) {
-			
-			for (int i = 0; i < nameServerCount; i++) {
-				String nameServer = nameServers[i].getData();
-				
-				for (int j = 0; j < additionalRecordCount; j++) {
-					Resource additionalRecord = additionalRecords[j]; 
-					
-					if (nameServer.equals(additionalRecord.getName())) {
-						ip = additionalRecord.getData();
-						return ip;
-					}
+
+		for (int i = 0; i < nameServerCount; i++) {
+			String nameServer = nameServers[i].getData();
+			for (int j = 0; j < additionalRecordCount; j++) {
+				Resource additionalRecord = additionalRecords[j]; 
+				if (nameServer.equals(additionalRecord.getName())) {
+					return additionalRecord.getData();
 				}
 			}
 		}
-		return ip;
+		return null;
 	}
 }
-
-
