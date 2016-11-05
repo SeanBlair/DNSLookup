@@ -16,9 +16,7 @@ public class DNSQuery {
 	private InetAddress rootNameServer;
 	private int timeouts; // Used to keep track of timeouts
 	private DatagramSocket datagramSocket;
-	private DatagramPacket packet;
 	
-	private DNSResponse response;
 	private long queryID;
 	private int fqdnLength;
 	private String fqdn;
@@ -39,13 +37,13 @@ public class DNSQuery {
 	/**
 	 * @param args
 	 */
-	public void query(String[] args) throws SocketException, Exception {
+	public void query(String hostServer, String fqdn) throws SocketException, Exception {
 		
 		byte[] responseBuffer;
 		
-		rootNameServer = InetAddress.getByName(args[0]);
+		rootNameServer = InetAddress.getByName(hostServer);
 		
-		fqdn = args[1];
+		this.fqdn = fqdn;
 		fqdnLength = fqdn.length();
 		
 		setupSocket();
@@ -59,41 +57,34 @@ public class DNSQuery {
 		System.out.println("\n\nQuery ID     " + queryID + " " + fqdn + " --> " + rootNameServer.getHostAddress());
 		
 		// Send packet.
-        packet = new DatagramPacket(requestBuffer, requestBuffer.length, rootNameServer, dnsPort); //
+        DatagramPacket packet = new DatagramPacket(requestBuffer, requestBuffer.length, rootNameServer, dnsPort); //
         datagramSocket.send(packet);
         
-        // for looking at sent byte array
-        //String sent = Arrays.toString(requestBuffer);
-        //System.out.println("Sent this DNSQuery to the DNS server: \n" + sent);
-     
         responseBuffer = new byte[responseBufferSize];
         packet = new DatagramPacket(responseBuffer, responseBuffer.length);
         
         try {
         datagramSocket.receive(packet);
-        timeouts++;
         } catch (SocketTimeoutException timeoutException) {
+        	timeouts++;
         	System.out.println("Query timed out.");
         	
         	if(timeouts == 2) {
+        		// TODO
         		System.out.println("Second time out dected");
         	}
         }
         
-        response = new DNSResponse(responseBuffer, responseBufferSize, fqdn, fqdnLength);
+        DNSResponse response = new DNSResponse(responseBuffer, responseBufferSize, fqdn, fqdnLength);
         response.printResponse();
         
-        // for viewing resulting dns response byte array.
-        //String received = Arrays.toString(responseBuffer);
-        //System.out.println("Received this response from DNS server: \n" + received);
-        
         datagramSocket.close();
-		
 		System.out.println("\nHey dude, it looks like it's working...");	
 	}
+	
 	private void setupSocket() throws SocketException{
 		datagramSocket = new DatagramSocket();
-		// Set timeout for receive() to 5 seconds (5000 ms)
+		// Set timeout for receive() to 5 seconds (5000 ms).
 		datagramSocket.setSoTimeout(5000);
 	}
 	
@@ -161,16 +152,6 @@ public class DNSQuery {
 	private long getUInt16(int index ) {
 		long value = byteAsULong(requestBuffer[index]) << 8 | (byteAsULong(requestBuffer[index + 1]));
 		return value;
-	}
-	
-
-	private static void usage() {
-		System.out.println("Usage: java -jar DNSlookup.jar rootDNS name [-t]");
-		System.out.println("   where");
-		System.out.println("       rootDNS - the IP address (in dotted form) of the root");
-		System.out.println("                 DNS server you are to start your search at");
-		System.out.println("       name    - fully qualified domain name to lookup");
-		System.out.println("       -t      -trace the queries made and responses received");
 	}
 }
 
