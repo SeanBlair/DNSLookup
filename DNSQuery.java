@@ -18,12 +18,8 @@ public class DNSQuery {
 	private int timeouts; // Used to keep track of timeouts
 	private DatagramSocket datagramSocket;
 	
-	private byte[] requestBuffer;
 	private int responseBufferSize;
 	private long queryID;
-	private int fqdnLength;
-	private String fqdn;
-	private String[] fqdnArray;
 	
 	public DNSQuery(){
 		this.tracingOn = false;
@@ -34,21 +30,14 @@ public class DNSQuery {
 	/**
 	 * @param args
 	 */
-	public void query(String hostServer, String fqdn) throws SocketException, Exception {
-		
-		byte[] responseBuffer;
-		
+	public void query(String hostServer, String fullyQualifiedDomainName) throws SocketException, Exception {	
 		rootNameServer = InetAddress.getByName(hostServer);
 		
-		this.fqdn = fqdn;
-		fqdnLength = fqdn.length();
-		
+		String fqdn = fullyQualifiedDomainName;
+		int fqdnLength = fqdn.length();
+		byte[] requestBuffer = new byte[fqdnLength + 18]; // 18 additional bytes for the hard-coded fields and random id. 
+		setupRequestBuffer(requestBuffer, fqdn);
 		setupSocket();
-		
-		requestBuffer = new byte[fqdnLength + 18]; // 18 additional bytes for the hard-coded fields and random id. 
-
-		// Construct DNS Query.
-		setupRequestBuffer();
 		
 		// Start printing output
 		System.out.println("\n\nQuery ID     " + queryID + " " + fqdn + " --> " + rootNameServer.getHostAddress());
@@ -57,7 +46,7 @@ public class DNSQuery {
         DatagramPacket packet = new DatagramPacket(requestBuffer, requestBuffer.length, rootNameServer, dnsPort); //
         datagramSocket.send(packet);
         
-        responseBuffer = new byte[responseBufferSize];
+        byte [] responseBuffer = new byte[responseBufferSize];
         packet = new DatagramPacket(responseBuffer, responseBuffer.length);
         
         try {
@@ -86,7 +75,7 @@ public class DNSQuery {
 	}
 	
 	// Construct initial DNS Query
-	private void setupRequestBuffer() {
+	private void setupRequestBuffer(byte[] requestBuffer, String fqdn) {
 		// assign a random number as queryId
 		// TODO look into a more complete implementation
 		int index = 0;
@@ -97,7 +86,7 @@ public class DNSQuery {
 		id = r.nextInt(255);
 		requestBuffer[index++] = (byte) id;
 		
-		queryID = getUInt16(0);
+		queryID = getUInt16(0, requestBuffer);
 		
 		// set next 16 bits to 0
 		requestBuffer[index++] = 0;
@@ -120,7 +109,7 @@ public class DNSQuery {
 		requestBuffer[index++] = 0;
 		
 		// Start of QNAME
-		fqdnArray = fqdn.split(Pattern.quote("."));
+		String[] fqdnArray = fqdn.split(Pattern.quote("."));
 		
 		for (String part : fqdnArray) {
 			requestBuffer[index++] = (byte) part.length();
@@ -146,7 +135,7 @@ public class DNSQuery {
 	}
 
 	// based on stack overflow post
-	private long getUInt16(int index) {
+	private long getUInt16(int index, byte[] requestBuffer) {
 		long value = byteAsULong(requestBuffer[index]) << 8 | (byteAsULong(requestBuffer[index + 1]));
 		return value;
 	}
