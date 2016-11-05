@@ -1,90 +1,64 @@
-import java.io.*;
 import java.net.*;
-import java.util.*;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.Random;
 import java.util.regex.Pattern;
-/**
- * 
- */
 
 /**
- * @author Donald Acton
- * This example is adapted from Kurose & Ross
+ * @author Gurjot & Sean
  *
  */
 public class DNSQuery {
 
-	final int MIN_PERMITTED_ARGUMENT_COUNT = 2;
-	boolean tracingOn = false;
-	InetAddress rootNameServer;
-	int tries = 0;
-	DatagramSocket datagramSocket;
-	DatagramPacket packet;
+	private final int MIN_PERMITTED_ARGUMENT_COUNT = 2;
+	private boolean tracingOn;
+	private InetAddress rootNameServer;
+	private int timeouts; // Used to keep track of timeouts
+	private DatagramSocket datagramSocket;
+	private DatagramPacket packet;
 	
-	DNSResponse response;
-	long queryID;
-	int fqdnLength;
-	String fqdn;
-	String[] fqdnArray;
+	private DNSResponse response;
+	private long queryID;
+	private int fqdnLength;
+	private String fqdn;
+	private String[] fqdnArray;
 	
-	int dnsPort;
+	private int dnsPort;
 	
-	static byte[] requestBuffer;
-	int index = 0;
+	private byte[] requestBuffer;
+	private int responseBufferSize;
 	
 	public DNSQuery(){
+		this.tracingOn = false;
 		this.dnsPort = 53;
+		this.responseBufferSize = 512;
+		this.timeouts = 0;
 	}
 	
 	/**
 	 * @param args
 	 */
-	public void query(String[] args) throws Exception {
-		int argCount = args.length;
-		
-		
-		
-		int responseBufferSize = 512;
+	public void query(String[] args) throws SocketException, Exception {
 		
 		byte[] responseBuffer;
 		
-		if (argCount < 2 || argCount > 3) {
-			usage();
-			return;
-		}
-
 		rootNameServer = InetAddress.getByName(args[0]);
 		
 		fqdn = args[1];
 		fqdnLength = fqdn.length();
 		
-		if (argCount == 3 && args[2].equals("-t"))
-				tracingOn = true;
-		
-		try {
 		setupSocket();
-		} catch (SocketException socketException) {
-			// TODO: socket exception caught
-		}
+		
 		requestBuffer = new byte[fqdnLength + 18]; // 18 additional bytes for the hard-coded fields and random id. 
 
-// for comparing with given example query.
-//		byte[] exampleQuery = new byte[bufferSize];
-//		exampleQuery = Files.readAllBytes(Paths.get("DNSInitialQuery.bin"));
-//      byteArrayBuffer = exampleQuery;
-		
-		// Construct initial DNS Query
+		// Construct DNS Query.
 		setupRequestBuffer();
 		
-		// send packet
-		
-		// start printing output
+		// Start printing output
 		System.out.println("\n\nQuery ID     " + queryID + " " + fqdn + " --> " + rootNameServer.getHostAddress());
-		 
 		
+		// Send packet.
         packet = new DatagramPacket(requestBuffer, requestBuffer.length, rootNameServer, dnsPort); //
         datagramSocket.send(packet);
         
@@ -97,11 +71,11 @@ public class DNSQuery {
         
         try {
         datagramSocket.receive(packet);
-        tries++;
+        timeouts++;
         } catch (SocketTimeoutException timeoutException) {
         	System.out.println("Query timed out.");
         	
-        	if(tries == 2) {
+        	if(timeouts == 2) {
         		System.out.println("Second time out dected");
         	}
         }
@@ -126,54 +100,56 @@ public class DNSQuery {
 	// Construct initial DNS Query
 	private void setupRequestBuffer() {
 		// assign a random number as queryId
-				// TODO look into a more complete implementation
-				Random r = new Random();
-				int id = r.nextInt(126); 
-				requestBuffer[index++] = (byte) id;
-				id = r.nextInt(255);
-				requestBuffer[index++] = (byte) id;
-				
-				queryID = getUInt16(0);
-				
-				// set next 16 bits to 0
-				requestBuffer[index++] = 0;
-				requestBuffer[index++] = 0;
-				
-				//set Query Count (QDCOUNT) to 1
-				requestBuffer[index++] = 0;
-				requestBuffer[index++] = 1;
-				
-				// set Answer Count (ANCOUNT) to 0
-				requestBuffer[index++] = 0;
-				requestBuffer[index++] = 0;
-				
-				// set Name Server Records (NSCOUNT) to 0
-				requestBuffer[index++] = 0;
-				requestBuffer[index++] = 0;
-				
-				// set Additional Record Count (ARCOUNT) to 0
-				requestBuffer[index++] = 0;
-				requestBuffer[index++] = 0;
-				
-				// Start of QNAME
-				fqdnArray = fqdn.split(Pattern.quote("."));
-				
-				for (String part : fqdnArray) {
-					requestBuffer[index++] = (byte) part.length();
-					for (char letter : part.toCharArray()) {
-						requestBuffer[index++] = (byte) letter;
-					}
-				}
-				
-				// end with 0 (1 byte only) (indicates end of QNAME	
-				requestBuffer[index++] = 0;
-				
-				// QTYPE
-				requestBuffer[index++] = 0;
-				requestBuffer[index++] = 1;
-				// QCLASS
-				requestBuffer[index++] = 0;
-				requestBuffer[index++] = 1;
+		// TODO look into a more complete implementation
+		int index = 0;
+		
+		Random r = new Random();
+		int id = r.nextInt(126); 
+		requestBuffer[index++] = (byte) id;
+		id = r.nextInt(255);
+		requestBuffer[index++] = (byte) id;
+		
+		queryID = getUInt16(0);
+		
+		// set next 16 bits to 0
+		requestBuffer[index++] = 0;
+		requestBuffer[index++] = 0;
+		
+		//set Query Count (QDCOUNT) to 1
+		requestBuffer[index++] = 0;
+		requestBuffer[index++] = 1;
+		
+		// set Answer Count (ANCOUNT) to 0
+		requestBuffer[index++] = 0;
+		requestBuffer[index++] = 0;
+		
+		// set Name Server Records (NSCOUNT) to 0
+		requestBuffer[index++] = 0;
+		requestBuffer[index++] = 0;
+		
+		// set Additional Record Count (ARCOUNT) to 0
+		requestBuffer[index++] = 0;
+		requestBuffer[index++] = 0;
+		
+		// Start of QNAME
+		fqdnArray = fqdn.split(Pattern.quote("."));
+		
+		for (String part : fqdnArray) {
+			requestBuffer[index++] = (byte) part.length();
+			for (char letter : part.toCharArray()) {
+				requestBuffer[index++] = (byte) letter;
+			}
+		}
+		
+		// end with 0 (1 byte only) (indicates end of QNAME	
+		requestBuffer[index++] = 0;
+		
+		// QTYPE
+		requestBuffer[index++] = 0;
+		requestBuffer[index++] = 1;
+		// QCLASS
+		requestBuffer[index++] = 0;
+		requestBuffer[index++] = 1;
 	}
 	
 	// based on stack overflow post
@@ -182,7 +158,7 @@ public class DNSQuery {
 	}
 
 	// based on stack overflow post
-	private static long getUInt16(int index ) {
+	private long getUInt16(int index ) {
 		long value = byteAsULong(requestBuffer[index]) << 8 | (byteAsULong(requestBuffer[index + 1]));
 		return value;
 	}
