@@ -71,7 +71,8 @@ public class DNSQuery {
         		//System.out.println("Second time out dected");
         		trace.add("Second time out detected");
         		// TODO exit with message
-        		System.out.println("Query timed out twice..");
+        		trace.add("Query timed out twice..");
+        		printProgramOutput("lookup failed...");
         		System.exit(-1);
         		
         	}
@@ -89,33 +90,36 @@ public class DNSQuery {
         	this.query(originalHostServer, response.getAnswersFirstFQDN()); //TODO
         }
         else if(!response.isAuthoritative()) {
-        	if(response.isAdditionalEmpty()){
+        	if(!response.isAdditionalEmpty()){
         		this.query(response.getNextServer(), fullyQualifiedDomainName);
         	} else {
         		// Additional Info empty.
         		this.query(originalHostServer, response.getFirstNameServerName());
         	}
         }
-        //else if(!fqdn.equals(originalFQDN)) { //TODO: this is not working as intended.
         else if (response.getAnswersFirstType() == 5) {	 
         	this.query(response.getAnswersFirstIP(), originalFQDN);
         }
         else {
-//	        String resolvedIP = response.getAnswersFirstIP();
-//	        int finalTimeToLive = response.getAnswersFirstTTL();
-//	        System.out.println(originalFQDN + " " + finalTimeToLive + " " + resolvedIP);
-	        if (tracingOn) {
-	        	for (String line : trace) {
-	        		System.out.println(line);
-	        	}
-	        }
-	        System.out.println(response.getAnswer());
-        	
+	        String resolvedIP = response.getAnswersFirstIP();
+	        int finalTimeToLive = response.getAnswersFirstTTL();
+        	String answer = originalFQDN + " " + finalTimeToLive + " " + resolvedIP;
+        	printProgramOutput(answer);
+
         	datagramSocket.close();
 			System.out.println("\n===== REACHED THE END =====");
 		}
 	}
 	
+	private void printProgramOutput(String string) 
+	{if (tracingOn) {
+    	for (String line : trace) {
+    		System.out.println(line);
+    	}
+    }
+    System.out.println(string);
+	}
+
 	private void setupSocket() throws SocketException{
 		datagramSocket = new DatagramSocket();
 		// Set timeout for receive() to 5 seconds (5000 ms).

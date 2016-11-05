@@ -431,7 +431,7 @@ public class DNSResponse {
 	}
 	
 	public boolean isAdditionalEmpty() {
-		return additionalRecordCount != 0;
+		return additionalRecordCount == 0;
 	}
 
 	public String getAnswersFirstFQDN() {
