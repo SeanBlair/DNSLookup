@@ -30,8 +30,9 @@ public class DNSlookup {
 	 */
 	public static void main(String[] args) throws Exception {
 		DNSResponse response;
+		ArrayList<String> trace = new ArrayList<String>();
 		long queryID;
-		
+
 		int argCount = args.length;
 		
 		int fqdnLength;
@@ -124,25 +125,61 @@ public class DNSlookup {
 		
 		// send packet
 		
-		// start printing output
-		System.out.println("\n\nQuery ID     " + queryID + " " + fqdn + " --> " + rootNameServer.getHostAddress());
+		do {
+			trace.add("\n\nQuery ID     " + queryID + " " + fqdn + " --> " + rootNameServer.getHostAddress());
+			packet = new DatagramPacket(requestBuffer, requestBuffer.length, rootNameServer, dnsPort);
+			datagramSocket.send(packet);
+			
+			responseBuffer = new byte[responseBufferSize];  // new byte array each time?? or use same one...??
+	        packet = new DatagramPacket(responseBuffer, responseBuffer.length);
+	        datagramSocket.receive(packet);
+	        
+	        response = new DNSResponse(responseBuffer, responseBufferSize, fqdn, fqdnLength);
+	      
+	        trace.addAll(response.getTrace());
+
+	        // set new query...  new queryID and rootNameServer
+		} 
+		while (!response.isAuthoritative());
+		
+		if (tracingOn) {
+			for (String line : trace) {
+				System.out.println(line);
+			}
+    	}
+		
+    	System.out.println(fqdn + response.getAnswer());
+    	
+    	
+		//trace.add("\n\nQuery ID     " + queryID + " " + fqdn + " --> " + rootNameServer.getHostAddress());
+		
+		//System.out.println("\n\nQuery ID     " + queryID + " " + fqdn + " --> " + rootNameServer.getHostAddress());
 		 
 		
-        packet = new DatagramPacket(requestBuffer, requestBuffer.length, rootNameServer, dnsPort); //
-        datagramSocket.send(packet);
-        
+//        packet = new DatagramPacket(requestBuffer, requestBuffer.length, rootNameServer, dnsPort); //
+//        datagramSocket.send(packet);
+//        
         // for looking at sent byte array
         //String sent = Arrays.toString(requestBuffer);
         //System.out.println("Sent this DNSQuery to the DNS server: \n" + sent);
      
         // receive response
         // TODO implement time out check (5 seconds??)
-        responseBuffer = new byte[responseBufferSize];
-        packet = new DatagramPacket(responseBuffer, responseBuffer.length);
-        datagramSocket.receive(packet);
+//        responseBuffer = new byte[responseBufferSize];
+//        packet = new DatagramPacket(responseBuffer, responseBuffer.length);
+//        datagramSocket.receive(packet);
  
-        response = new DNSResponse(responseBuffer, responseBufferSize, fqdn, fqdnLength);
-        response.printResponse();
+//        response = new DNSResponse(responseBuffer, responseBufferSize, fqdn, fqdnLength);
+//        
+//        if (response.isAuthoritative()) {
+//        	if (tracingOn) {
+//        		System.out.println(response.getTrace());
+//        	}
+//        	System.out.println(response.getAnswer());
+//        } else {
+//        	callRecursion();
+//        }
+        
         
         
         // for viewing resulting dns response byte array.

@@ -47,6 +47,11 @@ public class Resource {
 		System.out.format("       %-30s %-10d %-4s %s\n", name, TTL, resourceType, data);
 	
 	}
+
+
+	public String getString() {
+		return String.format("       %-30s %-10d %-4s %s\n", name, TTL, resourceType, data);
+	}
 	
 	
 }
