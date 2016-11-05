@@ -14,6 +14,7 @@ public class DNSQuery {
 	
 	private final int dnsPort = 53;
 	
+	private boolean resolvingNameServer = false;
 	private boolean tracingOn;
 	private int timeouts, numQueries;
 	private DatagramSocket datagramSocket;
@@ -34,7 +35,7 @@ public class DNSQuery {
 	/**
 	 * @param args
 	 */
-	public void query(String hostServer, String fullyQualifiedDomainName) throws SocketException, Exception {
+	public String query(String hostServer, String fullyQualifiedDomainName) throws SocketException, Exception {
 		if(numQueries >= 30) {
 			exitProgram(originalFQDN + " -3 0.0.0.0");
 		}
@@ -72,31 +73,38 @@ public class DNSQuery {
         //response.printResponse();
         trace.addAll(response.getTrace());  // might cause exceptions indicating invalid response that should be caught and dealt with.
         
-        if(response.isAnswerCNAME()) {
-        	// DNS resolved to a CNAME instead of an IP Address.
-        	// Try to now resolve CNAME
-        	this.query(originalHostServer, response.getAnswersFirstResourceData()); 
-        }
-        else if(!response.isAuthoritative()) {
-        	if(!response.isAdditionalInformationEmpty()){
-        		this.query(response.getNextServer(), fullyQualifiedDomainName);
+        if(response.isAuthoritative()) {
+        	if(resolvingNameServer) {
+        		return "216.239.34.10";
+        	}
+        	if(response.isAnswerCNAME()) {
+        		// DNS resolved to a CNAME instead of an IP Address.
+            	return this.query(originalHostServer, response.getAnswersFirstResourceData());
         	} else {
-        		// Additional Info empty.  TODO: is this check necessary??
-        		this.query(originalHostServer, response.getFirstNameServerName());
+	    		// Auth true && not CNAME: DONE - print results and return.
+	    		String resolvedIP = response.getAnswersFirstResourceData();
+		        int finalTimeToLive = response.getAnswersFirstResourceTTL();
+	        	String answer = originalFQDN + " " + finalTimeToLive + " " + resolvedIP;
+	        	printProgramOutput(answer);
+	        	
+	        	datagramSocket.close();
+				System.out.println("\n===== REACHED THE END =====");
+				return null;
+        	}
+        } 
+        else {
+        	if(response.getValidNameServerIP() != null) {
+        		// case match
+        		return this.query(response.getValidNameServerIP(), fullyQualifiedDomainName);
+        	} else {
+        		// case no match, need to resolve name server
+        		resolvingNameServer = true;
+        		String resolvedNameServerIP = this.query(originalHostServer, response.getFirstNameServerName());
+        		resolvingNameServer = false;
+        		this.query(resolvedNameServerIP, originalFQDN);
         	}
         }
-        else if (response.getAnswersFirstResourceType() == 5) {	 
-        	this.query(response.getAnswersFirstResourceData(), originalFQDN);
-        }
-        else {
-	        String resolvedIP = response.getAnswersFirstResourceData();
-	        int finalTimeToLive = response.getAnswersFirstResourceTTL();
-        	String answer = originalFQDN + " " + finalTimeToLive + " " + resolvedIP;
-        	printProgramOutput(answer);
-
-        	datagramSocket.close();
-			System.out.println("\n===== REACHED THE END =====");
-		}
+        return null;
 	}
 	
 	private void exitProgram(String string) {
