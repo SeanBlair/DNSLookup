@@ -65,17 +65,18 @@ public class DNSQuery {
         	timeouts++;
         	//System.out.println("Query timed out.");
         	trace.add("Query timed out.");
+        	this.query(hostServer, fullyQualifiedDomainName);
         	
         	if(timeouts == 2) {
         		// TODO
         		//System.out.println("Second time out dected");
-        		trace.add("Second time out dected");
+        		trace.add("Second time out detected");
         	}
         }
         
         DNSResponse response = new DNSResponse(responseBuffer, responseBufferSize, fqdn, fqdnLength);
         //response.printResponse();
-        trace.addAll(response.getTrace());
+        trace.addAll(response.getTrace());  // might cause exceptions indicating invalid response that should be caught and dealt with.
         
         if(response.isAnswerCNAME()) {
         	// DNS resolved to a CNAME instead of an IP Address.

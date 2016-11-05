@@ -188,8 +188,10 @@ public class DNSResponse {
 			resourceData = parseIpAddress();
 		} else if (resourceType == 28) { // type AAAA ipv6 address
 			resourceData = parseIpv6Address();
-		} else {
+		} else if (resourceType == 2 || resourceType == 5){
 			resourceData = parseWord();
+		} else {
+			resourceData = "----";
 		}
 		resource = new Resource(resourceName, resourceType, resourceClass, resourceTTL, resourceDataLength, resourceData);
 		return resource;
