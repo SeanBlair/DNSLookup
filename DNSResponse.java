@@ -363,7 +363,27 @@ public class DNSResponse {
 	public boolean isAdditionalInformationEmpty() {
 		return additionalRecordCount == 0;
 	}
-
+	
+	// returns IP for NameServer or null if invalid;
+	public String getValidNameServerIP() {
+		String ip = null;		
+		if (additionalRecordCount > 0) {
+			
+			for (int i = 0; i < nameServerCount; i++) {
+				String nameServer = nameServers[i].getData();
+				
+				for (int j = 0; j < additionalRecordCount; j++) {
+					Resource additionalRecord = additionalRecords[j]; 
+					
+					if (nameServer.equals(additionalRecord.getName())) {
+						ip = additionalRecord.getData();
+						return ip;
+					}
+				}
+			}
+		}
+		return ip;
+	}
 }
 
 
