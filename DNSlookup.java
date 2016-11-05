@@ -14,17 +14,14 @@ import java.util.Random;
  * 
  */ 
 public class DNSlookup { 
- 
- 
+
   static final int MIN_PERMITTED_ARGUMENT_COUNT = 2; 
   static boolean tracingOn = false; 
-  static InetAddress rootNameServer; 
    
   /** 
    * @param args 
    */ 
   public static void main(String[] args) throws Exception { 
-    String fqdn; 
     DNSResponse response; // Just to force compilation 
     int argCount = args.length; 
      
@@ -33,8 +30,8 @@ public class DNSlookup {
       return; 
     } 
  
-    rootNameServer = InetAddress.getByName(args[0]); 
-    fqdn = args[1];
+    String hostServer = args[0]; 
+    String fqdn = args[1];
      
     if (argCount == 3 && args[2].equals("-t")) 
         tracingOn = true; 
@@ -42,11 +39,13 @@ public class DNSlookup {
     // Send the query
     DNSQuery queryHandler = new DNSQuery();
     try {
-    queryHandler.query(args);
+    queryHandler.query(hostServer, fqdn);
     } catch (SocketException e) {
     	// TODO
+    	System.out.println("Socket failed to create.");
     } catch (Exception e) {
     	// TODO
+    	System.out.println("Unknown error occured.");
     }
   } 
  
