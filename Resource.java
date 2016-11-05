@@ -50,8 +50,29 @@ public class Resource {
 
 
 	public String getString() {
-		return String.format("       %-30s %-10d %-4s %s", name, TTL, resourceType, data);
+		String type = translateType((int) resourceType);
+		return String.format("       %-30s %-10d %-4s %s", name, TTL, type, data);
 	}
-	
-	
+
+
+	private String translateType(int resourceType) {
+		String type = "";
+		
+		switch (resourceType) {
+			case 1 : type = "A";
+			break;
+		
+			case 2 : type = "NS";
+			break;
+		
+			case 5 : type = "CN";
+			break;
+		
+			case 28 : type = "AAAA";
+			break;
+			
+			default : type += resourceType;
+		}
+		return type;
+	}
 }
