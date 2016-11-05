@@ -1,6 +1,7 @@
  
 import java.net.DatagramSocket; 
 import java.net.InetAddress; 
+import java.net.SocketException;
 import java.util.Random; 
  
 /** 
@@ -33,13 +34,20 @@ public class DNSlookup {
     } 
  
     rootNameServer = InetAddress.getByName(args[0]); 
-    fqdn = args[1]; 
+    fqdn = args[1];
      
     if (argCount == 3 && args[2].equals("-t")) 
         tracingOn = true; 
      
-    // Start adding code here to initiate the lookup 
-     
+    // Send the query
+    DNSQuery queryHandler = new DNSQuery();
+    try {
+    queryHandler.query(args);
+    } catch (SocketException e) {
+    	// TODO
+    } catch (Exception e) {
+    	// TODO
+    }
   } 
  
   private static void usage() { 

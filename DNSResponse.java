@@ -1,6 +1,5 @@
-
-
-
+import java.util.ArrayList;
+import java.util.Collection;
 
 // Lots of the action associated with handling a DNS query is processing 
 // the response. Although not required you might find the following skeleton of
@@ -33,6 +32,8 @@ public class DNSResponse {
     private Resource[] additionalRecords;
     
     private int index = 0;
+    
+    char[] trace;
 
     // Note you will almost certainly need some additional instance variables.
 
@@ -351,6 +352,53 @@ public class DNSResponse {
     // the important values they are returning. Note that an IPV6 reponse record
     // is of type 28. It probably wouldn't hurt to have a response record class to hold
     // these records. 
+	
+	
+	public boolean isAuthoritative() {
+		return authoritative;
+	}
+
+	public ArrayList<String> getTrace() {
+		ArrayList<String> list = new ArrayList<String>();
+		list.add("Response ID: " + queryID + " Authoritative " + authoritative);
+		
+		list.add("  Answers (" + answerCount + ")");
+		if (answerCount > 0) {
+			list.addAll(getTraceSection(answers));
+		}
+		
+		list.add("  Nameservers (" + nameServerCount + ")");
+		if (nameServerCount > 0) {
+			list.addAll(getTraceSection(nameServers));
+		}
+		
+		list.add("  Additional Information (" + additionalRecordCount + ")");
+		if (answerCount > 0) {
+			list.addAll(getTraceSection(additionalRecords));
+		}
+		
+		return list;
+	}
+
+	private ArrayList<String> getTraceSection(Resource[] resourceArray) {
+		ArrayList<String> list = new ArrayList<String>();
+		for (int i = 0; i > resourceArray.length; i++) {
+			Resource resource = resourceArray[i];
+			list.add(resource.getString());
+		}
+		return list;
+	}
+
+	public String getAnswer() {
+		String answer = "";
+		if (answerCount < 1) {
+			answer = "There were no answers to get!!!";
+		}
+		for (Resource r : answers) {
+			answer = r.getName() + " " + r.getTTL() + " " + r.getData() + "\n";
+		}
+		return answer;
+	}
 }
 
 
