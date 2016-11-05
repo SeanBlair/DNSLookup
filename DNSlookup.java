@@ -36,7 +36,7 @@ public class DNSlookup {
         tracingOn = true; 
      
     // Send the query
-    DNSQuery queryHandler = new DNSQuery(hostServer, fqdn);
+    DNSQuery queryHandler = new DNSQuery(hostServer, fqdn, tracingOn);
     try {
     	queryHandler.query(hostServer, fqdn);
     } catch (SocketException e) {

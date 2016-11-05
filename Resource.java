@@ -50,7 +50,7 @@ public class Resource {
 
 
 	public String getString() {
-		return String.format("       %-30s %-10d %-4s %s\n", name, TTL, resourceType, data);
+		return String.format("       %-30s %-10d %-4s %s", name, TTL, resourceType, data);
 	}
 	
 	

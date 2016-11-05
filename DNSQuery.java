@@ -2,6 +2,7 @@ import java.net.*;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.regex.Pattern;
 
@@ -18,14 +19,16 @@ public class DNSQuery {
 	private DatagramSocket datagramSocket;
 	private String originalHostServer, originalFQDN;
 	private int responseBufferSize;
+	private ArrayList<String> trace;
 	
-	public DNSQuery(String originalHostServer, String originalFQDN){
-		this.tracingOn = false;
+	public DNSQuery(String originalHostServer, String originalFQDN, boolean tracingOn){
+		this.tracingOn = tracingOn;
 		this.responseBufferSize = 512;
 		this.timeouts = 0;
 		this.numQueries = 0;
 		this.originalHostServer = originalHostServer;
 		this.originalFQDN = originalFQDN;
+		this.trace = new ArrayList<String>();
 	}
 	
 	/**
@@ -46,7 +49,8 @@ public class DNSQuery {
 		setupSocket();
 		
 		// Start printing output
-		System.out.println("\n\nQuery ID     " + queryID + " " + fqdn + " --> " + rootNameServer.getHostAddress());
+		//System.out.println("\n\nQuery ID     " + queryID + " " + fqdn + " --> " + rootNameServer.getHostAddress());
+		trace.add("\n\nQuery ID     " + queryID + " " + fqdn + " --> " + rootNameServer.getHostAddress());
 		
 		// Send packet.
         DatagramPacket packet = new DatagramPacket(requestBuffer, requestBuffer.length, rootNameServer, dnsPort); //
@@ -59,16 +63,19 @@ public class DNSQuery {
         datagramSocket.receive(packet);
         } catch (SocketTimeoutException timeoutException) {
         	timeouts++;
-        	System.out.println("Query timed out.");
+        	//System.out.println("Query timed out.");
+        	trace.add("Query timed out.");
         	
         	if(timeouts == 2) {
         		// TODO
-        		System.out.println("Second time out dected");
+        		//System.out.println("Second time out dected");
+        		trace.add("Second time out dected");
         	}
         }
         
         DNSResponse response = new DNSResponse(responseBuffer, responseBufferSize, fqdn, fqdnLength);
-        response.printResponse();
+        //response.printResponse();
+        trace.addAll(response.getTrace());
         
         if(response.isAnswerCNAME()) {
         	// DNS resolved to a CNAME instead of an IP Address.
@@ -89,10 +96,17 @@ public class DNSQuery {
         	this.query(response.getAnswersFirstIP(), originalFQDN);
         }
         else {
-	        String resolvedIP = response.getAnswersFirstIP();
-	        int finalTimeToLive = response.getAnswersFirstTTL();
-	        System.out.println(originalFQDN + " " + finalTimeToLive + " " + resolvedIP);
-	        datagramSocket.close();
+//	        String resolvedIP = response.getAnswersFirstIP();
+//	        int finalTimeToLive = response.getAnswersFirstTTL();
+//	        System.out.println(originalFQDN + " " + finalTimeToLive + " " + resolvedIP);
+	        if (tracingOn) {
+	        	for (String line : trace) {
+	        		System.out.println(line);
+	        	}
+	        }
+	        System.out.println(response.getAnswer());
+        	
+        	datagramSocket.close();
 			System.out.println("\n===== REACHED THE END =====");
 		}
 	}

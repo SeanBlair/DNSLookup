@@ -377,7 +377,7 @@ public class DNSResponse {
 
 	private ArrayList<String> getTraceSection(Resource[] resourceArray) {
 		ArrayList<String> list = new ArrayList<String>();
-		for (int i = 0; i > resourceArray.length; i++) {
+		for (int i = 0; i < resourceArray.length; i++) {
 			Resource resource = resourceArray[i];
 			list.add(resource.getString());
 		}
@@ -390,7 +390,7 @@ public class DNSResponse {
 			answer = "There were no answers to get!!!";
 		}
 		for (Resource r : answers) {
-			answer = r.getName() + " " + r.getTTL() + " " + r.getData() + "\n";
+			answer = r.getName() + " " + r.getTTL() + " " + r.getData();
 		}
 		return answer;
 	}
