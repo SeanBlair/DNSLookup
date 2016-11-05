@@ -65,13 +65,14 @@ public class DNSQuery {
         	timeouts++;
         	//System.out.println("Query timed out.");
         	trace.add("Query timed out.");
-        	this.query(hostServer, fullyQualifiedDomainName);
         	
         	if(timeouts == 2) {
         		// TODO
         		//System.out.println("Second time out dected");
         		trace.add("Second time out detected");
+        		// TODO exit with message
         	}
+        	this.query(hostServer, fullyQualifiedDomainName);
         }
         
         DNSResponse response = new DNSResponse(responseBuffer, responseBufferSize, fqdn, fqdnLength);
