@@ -10,26 +10,23 @@ import java.util.regex.Pattern;
  *
  */
 public class DNSQuery {
-
-	private final int MIN_PERMITTED_ARGUMENT_COUNT = 2;
-	private boolean tracingOn;
+	
+	private final int dnsPort = 53;
+	
+	private boolean tracingOn;  // TODO: might not need this
 	private InetAddress rootNameServer;
 	private int timeouts; // Used to keep track of timeouts
 	private DatagramSocket datagramSocket;
 	
+	private byte[] requestBuffer;
+	private int responseBufferSize;
 	private long queryID;
 	private int fqdnLength;
 	private String fqdn;
 	private String[] fqdnArray;
 	
-	private int dnsPort;
-	
-	private byte[] requestBuffer;
-	private int responseBufferSize;
-	
 	public DNSQuery(){
 		this.tracingOn = false;
-		this.dnsPort = 53;
 		this.responseBufferSize = 512;
 		this.timeouts = 0;
 	}
@@ -149,7 +146,7 @@ public class DNSQuery {
 	}
 
 	// based on stack overflow post
-	private long getUInt16(int index ) {
+	private long getUInt16(int index) {
 		long value = byteAsULong(requestBuffer[index]) << 8 | (byteAsULong(requestBuffer[index + 1]));
 		return value;
 	}

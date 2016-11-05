@@ -14,8 +14,7 @@ import java.util.Random;
  * 
  */ 
 public class DNSlookup { 
- 
- 
+
   static final int MIN_PERMITTED_ARGUMENT_COUNT = 2; 
   static boolean tracingOn = false; 
    

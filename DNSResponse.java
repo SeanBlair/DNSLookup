@@ -145,7 +145,6 @@ public class DNSResponse {
 		}	
 	}
 	
-
 	// creates an array of Resource objects representing each Nameserver resource
 	// increments responseData index to beginning of next section.
 	private void parseNameServerRecords() {
@@ -293,7 +292,6 @@ public class DNSResponse {
 		return label + ".";
 	}
 
-
 	// based on stack overflow post
 	private long byteAsULong(byte b) {
 	    return ((long)b) & 0x00000000000000FFL; 
@@ -323,9 +321,8 @@ public class DNSResponse {
 		if (additionalRecordCount > 0) {
 			for (Resource record : additionalRecords) {
 				record.print();
-			}	
+			}
 		}
-		
 	}
 
 	private void printNameServers() {
@@ -334,9 +331,8 @@ public class DNSResponse {
 			for (Resource nameServer : nameServers) {
 				nameServer.print();
 				
-			}	
+			}
 		}
-		
 	}
 
 	private void printAnswers() {
@@ -344,7 +340,7 @@ public class DNSResponse {
 		if (answerCount > 0) {
 			for (Resource answer : answers) {
 				answer.print();
-			}	
+			}
 		}
 	}
 	
@@ -376,7 +372,6 @@ public class DNSResponse {
 		if (answerCount > 0) {
 			list.addAll(getTraceSection(additionalRecords));
 		}
-		
 		return list;
 	}
 
