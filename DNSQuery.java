@@ -14,7 +14,7 @@ public class DNSQuery {
 	
 	private final int dnsPort = 53;
 	
-	private boolean tracingOn;  // TODO: might not need this
+	private boolean tracingOn;
 	private int timeouts, numQueries;
 	private DatagramSocket datagramSocket;
 	private String originalHostServer, originalFQDN;
@@ -48,8 +48,6 @@ public class DNSQuery {
 		long queryID = setupRequestBuffer(requestBuffer, fqdn);
 		setupSocket();
 		
-		// Start printing output
-		//System.out.println("\n\nQuery ID     " + queryID + " " + fqdn + " --> " + rootNameServer.getHostAddress());
 		trace.add("\n\nQuery ID     " + queryID + " " + fqdn + " --> " + rootNameServer.getHostAddress());
 		
 		// Send packet.
@@ -67,8 +65,7 @@ public class DNSQuery {
         	trace.add("Query timed out.");
         	
         	if(timeouts == 2) {
-        		// TODO
-        		//System.out.println("Second time out dected");
+        		// change these two messages to correct program output.
         		trace.add("Second time out detected");
         		// TODO exit with message
         		trace.add("Query timed out twice..");
@@ -76,7 +73,7 @@ public class DNSQuery {
         		System.exit(-1);
         		
         	}
-        	this.query(hostServer, fullyQualifiedDomainName);
+        	this.query(hostServer, fqdn);
         }
         
         DNSResponse response = new DNSResponse(responseBuffer, responseBufferSize, fqdn, fqdnLength);
@@ -86,14 +83,13 @@ public class DNSQuery {
         if(response.isAnswerCNAME()) {
         	// DNS resolved to a CNAME instead of an IP Address.
         	// Try to now resolve CNAME
-        	//String CNAME = response.getAnswersFirstName();
-        	this.query(originalHostServer, response.getAnswersFirstFQDN()); //TODO
+        	this.query(originalHostServer, response.getAnswersFirstFQDN()); 
         }
         else if(!response.isAuthoritative()) {
         	if(!response.isAdditionalEmpty()){
         		this.query(response.getNextServer(), fullyQualifiedDomainName);
         	} else {
-        		// Additional Info empty.
+        		// Additional Info empty.  TODO: is this check necessary??
         		this.query(originalHostServer, response.getFirstNameServerName());
         	}
         }
