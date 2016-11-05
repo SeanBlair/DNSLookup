@@ -371,7 +371,7 @@ public class DNSResponse {
 		}
 		
 		list.add("  Additional Information (" + additionalRecordCount + ")");
-		if (answerCount > 0) {
+		if (additionalRecordCount > 0) {
 			list.addAll(getTraceSection(additionalRecords));
 		}
 		return list;

@@ -71,6 +71,9 @@ public class DNSQuery {
         		//System.out.println("Second time out dected");
         		trace.add("Second time out detected");
         		// TODO exit with message
+        		System.out.println("Query timed out twice..");
+        		System.exit(-1);
+        		
         	}
         	this.query(hostServer, fullyQualifiedDomainName);
         }
