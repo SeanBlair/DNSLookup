@@ -395,6 +395,10 @@ public class DNSResponse {
 		return answer;
 	}
 	
+	public String getNextServer() {
+		return additionalRecords[0].getData();
+	}
+	
 	public boolean isAnswerCNAME() {
 		boolean isCNAME = false;
 		if (answerCount > 0) {
@@ -403,8 +407,28 @@ public class DNSResponse {
 		return isCNAME;
 	}
 	
+	public String getFirstNameServerName() {
+		return nameServers[0].getData();
+	}
+	
 	public String getCNAME() {
 		return answers[0].getName();
+	}
+	
+	public String getAnswersFirstIP() {
+		return answers[0].getData();
+	}
+
+	public int getAnswersFirstTTL() {
+		return (int) answers[0].getTTL();
+	}
+	
+	public boolean isAdditionalEmpty() {
+		return additionalRecordCount != 0;
+	}
+
+	public String getAnswersFirstFQDN() {
+		return answers[0].getData();
 	}
 }
 
