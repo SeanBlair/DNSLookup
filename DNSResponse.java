@@ -1,5 +1,5 @@
 import java.util.ArrayList;
-import java.util.Collection;
+
 
 // Lots of the action associated with handling a DNS query is processing 
 // the response. Although not required you might find the following skeleton of
@@ -16,7 +16,7 @@ public class DNSResponse {
 	private int responseArrayLength;
     
 	private long queryID;                  // this is for the response it must match the one in the request 
-    private boolean decoded = false;      // Was this response successfully decoded
+//    private boolean decoded = false;      // Was this response successfully decoded
     private boolean authoritative = false;// Is this an authoritative record
     
     private String fullyQualifiedDomainName;
@@ -38,16 +38,16 @@ public class DNSResponse {
     // Note you will almost certainly need some additional instance variables.
 
     
-    // When in trace mode you probably want to dump out all the relevant information in a response
-	void dumpResponse() {
-
-		// not sure what this is supposed to do...
-		// probably simply store the text we need to display
-		// alternatively, could simply store whole DNSResponse object??
-		//		this would allow more options with more data...
-
-
-	}
+//    // When in trace mode you probably want to dump out all the relevant information in a response
+//	void dumpResponse() {
+//
+//		// not sure what this is supposed to do...
+//		// probably simply store the text we need to display
+//		// alternatively, could simply store whole DNSResponse object??
+//		//		this would allow more options with more data...
+//
+//
+//	}
 
     // The constructor: you may want to add additional parameters, but the two shown are 
     // probably the minimum that you need.
@@ -58,80 +58,47 @@ public class DNSResponse {
 	    fullyQualifiedDomainName = fqdn;
 	    fqdnLength = fqdnLen;
 	    
-	    // The following are probably some of the things 
-	    // you will need to do.
-		
 	    // Extract the query ID
-		
-		// int consisting of the first two bytes of response
-		// has to be equal to query id.. (check??)
 		queryID = getUInt16(0);
 		
 	    // Make sure the message is a query response and determine
-	    // if it is an authoritative response or note
-		
+	    // if it is an authoritative response or note		
 		boolean isResponse = responseData[2] < 0; // needs to be more robust. Works because java bytes are signed.
-
 		if (!isResponse){
-			//do something about it...
+			// TODO: do something about it...
 		}
 		
 		authoritative = ((responseData[2] >> 2) & 0x1) == 1;
-
 		    // determine answer count
-		answerCount = getUInt16(6); 
-		
+		answerCount = getUInt16(6); 		
 		// determine NS Count
-		nameServerCount = getUInt16(8); 
-		
+		nameServerCount = getUInt16(8); 		
 		// determine additional record count
 		additionalRecordCount = getUInt16(10);
 		
 		// start of QNAME
-		index = 12; 
-		
+		index = 12; 		
 		// end of QNAME
-		index += fqdnLength + 1; 
-		
-		// 0 byte?
+		index += fqdnLength + 1; 		
+		// 0 byte
 		int end = responseData[index++];
-		
-		if (!(end == 0)) {
-			// do something??
-		}
-		
+
 		long qType = getUInt16(index++);
-		index++;
-		// check something??
-		
+		index++;	
 		long qClass = getUInt16(index++);
 		index++;
-		// check something??
 		
-		
-		// Answer starts at data[index]
-		
+		// Answer starts at data[index]	
 	    // Extract list of answers, name server, and additional information response 
 	    // records
-		
-		
 		parseAnswers();
-
 		parseNameServerRecords();
-		
-		// seems to be broken...
 		parseAdditionalRecords();
-		
-
-		// dump records... (create entry for -t option)
-		
-		// implement call to next server???
 	}
 
 
     // You will probably want a methods to extract a compressed FQDN, IP address
     // cname, authoritative DNS servers and other values like the query ID etc.
-	
 	
 	
 	// creates an array of Resource objects representing each Additional Record resource
@@ -182,8 +149,15 @@ public class DNSResponse {
 		index += 4;
 		long resourceDataLength = getUInt16(index);
 		index += 2;
-		// this needs work, not sure what logic to check before reading data...
-		String resourceData;
+
+		String resourceData = getResourceData(resourceType);
+		
+		resource = new Resource(resourceName, resourceType, resourceClass, resourceTTL, resourceDataLength, resourceData);
+		return resource;
+	}
+
+	private String getResourceData(long resourceType) {
+		String resourceData = "";
 		if (resourceType == 1) {  // type A : host ip address.
 			resourceData = parseIpAddress();
 		} else if (resourceType == 28) { // type AAAA ipv6 address
@@ -193,9 +167,9 @@ public class DNSResponse {
 		} else {
 			resourceData = "----";
 		}
-		resource = new Resource(resourceName, resourceType, resourceClass, resourceTTL, resourceDataLength, resourceData);
-		return resource;
+		return resourceData;
 	}
+
 
 	// returns ipv6 address and increments the responseData index.
 	private String parseIpv6Address() {
@@ -311,40 +285,6 @@ public class DNSResponse {
 		return value;
 	}
 
-	public void printResponse() {
-		System.out.println("Response ID: " + queryID + " Authoritative " + authoritative);
-		printAnswers();
-		printNameServers();
-		printAdditionalInfo();
-	}
-
-	private void printAdditionalInfo() {
-		System.out.println("  Additional Information (" + additionalRecordCount + ")");
-		if (additionalRecordCount > 0) {
-			for (Resource record : additionalRecords) {
-				record.print();
-			}
-		}
-	}
-
-	private void printNameServers() {
-		System.out.println("  Nameservers (" + nameServerCount + ")");
-		if (nameServerCount > 0) {
-			for (Resource nameServer : nameServers) {
-				nameServer.print();
-				
-			}
-		}
-	}
-
-	private void printAnswers() {
-		System.out.println("  Answers (" + answerCount + ")");
-		if (answerCount > 0) {
-			for (Resource answer : answers) {
-				answer.print();
-			}
-		}
-	}
 	
     // You will also want methods to extract the response records and record
     // the important values they are returning. Note that an IPV6 reponse record
