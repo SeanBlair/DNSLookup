@@ -1,4 +1,3 @@
-
 public class Resource {
 
 	private String name;
@@ -9,14 +8,13 @@ public class Resource {
 	private String data;
 	
 	public Resource(String rName, long rType, long rClass, long ttl, long dLength, String d) {
-		name = rName;
-		resourceType = rType;
-		resourceClass = rClass;
-		TTL = ttl;
-		dataLength = dLength;
-		data = d;
+		this.name = rName;
+		this.resourceType = rType;
+		this.resourceClass = rClass;
+		this.TTL = ttl;
+		this.dataLength = dLength;
+		this.data = d;
 	}
-	
 	
 	public String getName() {
 		return name;
@@ -42,37 +40,23 @@ public class Resource {
 		return data;
 	}
 
-
 	public void print() {
 		System.out.format("       %-30s %-10d %-4s %s\n", name, TTL, resourceType, data);
-	
 	}
-
 
 	public String getString() {
 		String type = translateType((int) resourceType);
 		return String.format("       %-30s %-10d %-4s %s", name, TTL, type, data);
 	}
 
-
 	private String translateType(int resourceType) {
-		String type = "";
-		
 		switch (resourceType) {
-			case 1 : type = "A";
-			break;
-		
-			case 2 : type = "NS";
-			break;
-		
-			case 5 : type = "CN";
-			break;
-		
-			case 28 : type = "AAAA";
-			break;
+			case 1 : return "A";
+			case 2 : return "NS";
+			case 5 : return "CN";
+			case 28 : return "AAAA";
 			
-			default : type += resourceType;
+			default : return String.valueOf(resourceType);
 		}
-		return type;
 	}
 }
