@@ -19,7 +19,6 @@ public class DNSQuery {
 	private DatagramSocket datagramSocket;
 	
 	private int responseBufferSize;
-	private long queryID;
 	
 	public DNSQuery(){
 		this.tracingOn = false;
@@ -36,7 +35,7 @@ public class DNSQuery {
 		String fqdn = fullyQualifiedDomainName;
 		int fqdnLength = fqdn.length();
 		byte[] requestBuffer = new byte[fqdnLength + 18]; // 18 additional bytes for the hard-coded fields and random id. 
-		setupRequestBuffer(requestBuffer, fqdn);
+		long queryID = setupRequestBuffer(requestBuffer, fqdn);
 		setupSocket();
 		
 		// Start printing output
@@ -74,8 +73,8 @@ public class DNSQuery {
 		datagramSocket.setSoTimeout(5000);
 	}
 	
-	// Construct initial DNS Query
-	private void setupRequestBuffer(byte[] requestBuffer, String fqdn) {
+	// Construct initial DNS Query, returns query ID
+	private long setupRequestBuffer(byte[] requestBuffer, String fqdn) {
 		// assign a random number as queryId
 		// TODO look into a more complete implementation
 		int index = 0;
@@ -86,7 +85,7 @@ public class DNSQuery {
 		id = r.nextInt(255);
 		requestBuffer[index++] = (byte) id;
 		
-		queryID = getUInt16(0, requestBuffer);
+		long queryID = getUInt16(0, requestBuffer);
 		
 		// set next 16 bits to 0
 		requestBuffer[index++] = 0;
@@ -127,6 +126,8 @@ public class DNSQuery {
 		// QCLASS
 		requestBuffer[index++] = 0;
 		requestBuffer[index++] = 1;
+		
+		return queryID;
 	}
 	
 	// based on stack overflow post
