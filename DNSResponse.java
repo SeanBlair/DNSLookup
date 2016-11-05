@@ -326,16 +326,6 @@ public class DNSResponse {
 		return list;
 	}
 
-	public String getAnswer() {
-		String answer = "";
-		if (answerCount < 1) {
-			answer = "There were no answers to get!!!";
-		}
-		for (Resource r : answers) {
-			answer = r.getName() + " " + r.getTTL() + " " + r.getData();
-		}
-		return answer;
-	}
 	
 	public String getNextServer() {
 		return additionalRecords[0].getData();
@@ -353,30 +343,27 @@ public class DNSResponse {
 		return nameServers[0].getData();
 	}
 	
-	public String getAnswersFirstName() {
+	public String getAnswersFirstResourceName() {
 		return answers[0].getName();
 	}
 	
-	public String getAnswersFirstIP() {
+	public String getAnswersFirstResourceData() {
 		return answers[0].getData();
 	}
 	
-	public int getAnswersFirstType() {
+	public int getAnswersFirstResourceType() {
 		return (int) answers[0].getType();
 	}
 	
 
-	public int getAnswersFirstTTL() {
+	public int getAnswersFirstResourceTTL() {
 		return (int) answers[0].getTTL();
 	}
 	
-	public boolean isAdditionalEmpty() {
+	public boolean isAdditionalInformationEmpty() {
 		return additionalRecordCount == 0;
 	}
 
-	public String getAnswersFirstFQDN() {
-		return answers[0].getData();
-	}
 }
 
 

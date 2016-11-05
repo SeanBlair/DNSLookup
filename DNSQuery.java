@@ -83,22 +83,22 @@ public class DNSQuery {
         if(response.isAnswerCNAME()) {
         	// DNS resolved to a CNAME instead of an IP Address.
         	// Try to now resolve CNAME
-        	this.query(originalHostServer, response.getAnswersFirstFQDN()); 
+        	this.query(originalHostServer, response.getAnswersFirstResourceData()); 
         }
         else if(!response.isAuthoritative()) {
-        	if(!response.isAdditionalEmpty()){
+        	if(!response.isAdditionalInformationEmpty()){
         		this.query(response.getNextServer(), fullyQualifiedDomainName);
         	} else {
         		// Additional Info empty.  TODO: is this check necessary??
         		this.query(originalHostServer, response.getFirstNameServerName());
         	}
         }
-        else if (response.getAnswersFirstType() == 5) {	 
-        	this.query(response.getAnswersFirstIP(), originalFQDN);
+        else if (response.getAnswersFirstResourceType() == 5) {	 
+        	this.query(response.getAnswersFirstResourceData(), originalFQDN);
         }
         else {
-	        String resolvedIP = response.getAnswersFirstIP();
-	        int finalTimeToLive = response.getAnswersFirstTTL();
+	        String resolvedIP = response.getAnswersFirstResourceData();
+	        int finalTimeToLive = response.getAnswersFirstResourceTTL();
         	String answer = originalFQDN + " " + finalTimeToLive + " " + resolvedIP;
         	printProgramOutput(answer);
 
