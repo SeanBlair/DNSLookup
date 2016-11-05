@@ -75,7 +75,7 @@ public class DNSQuery {
         
         if(response.isAuthoritative()) {
         	if(resolvingNameServer) {
-        		return "216.239.34.10";
+        		return response.getAnswersFirstResourceData();
         	}
         	if(response.isAnswerCNAME()) {
         		// DNS resolved to a CNAME instead of an IP Address.
