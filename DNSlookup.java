@@ -39,7 +39,7 @@ public class DNSlookup {
     // Send the query
     DNSQuery queryHandler = new DNSQuery();
     try {
-    queryHandler.query(hostServer, fqdn);
+    	queryHandler.query(hostServer, fqdn);
     } catch (SocketException e) {
     	// TODO
     	System.out.println("Socket failed to create.");

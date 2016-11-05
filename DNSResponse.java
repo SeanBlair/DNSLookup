@@ -396,11 +396,15 @@ public class DNSResponse {
 	}
 	
 	public boolean isAnswerCNAME() {
-		boolean b = false;
+		boolean isCNAME = false;
 		if (answerCount > 0) {
-			b = (answers[0].getType() == 5); // CNAME = 5
+			isCNAME = (answers[0].getType() == 5); // CNAME = 5
 		}
-		return b;
+		return isCNAME;
+	}
+	
+	public String getCNAME() {
+		return answers[0].getName();
 	}
 }
 

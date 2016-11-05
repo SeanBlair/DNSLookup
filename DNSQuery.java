@@ -14,8 +14,8 @@ public class DNSQuery {
 	private final int dnsPort = 53;
 	
 	private boolean tracingOn;  // TODO: might not need this
-	private InetAddress rootNameServer;
 	private int timeouts; // Used to keep track of timeouts
+	private int numQueries;
 	private DatagramSocket datagramSocket;
 	
 	private int responseBufferSize;
@@ -24,13 +24,16 @@ public class DNSQuery {
 		this.tracingOn = false;
 		this.responseBufferSize = 512;
 		this.timeouts = 0;
+		this.numQueries = 0;
 	}
 	
 	/**
 	 * @param args
 	 */
-	public void query(String hostServer, String fullyQualifiedDomainName) throws SocketException, Exception {	
-		rootNameServer = InetAddress.getByName(hostServer);
+	public void query(String hostServer, String fullyQualifiedDomainName) throws SocketException, Exception {
+    
+		this.numQueries++;
+		InetAddress rootNameServer = InetAddress.getByName(hostServer);
 		
 		String fqdn = fullyQualifiedDomainName;
 		int fqdnLength = fqdn.length();
@@ -63,6 +66,16 @@ public class DNSQuery {
         DNSResponse response = new DNSResponse(responseBuffer, responseBufferSize, fqdn, fqdnLength);
         response.printResponse();
         
+        
+        if(response.isAnswerCNAME()) {
+        	// DNS resolved to a CNAME instead of an IP Address.
+        	// Try to now resolve CNAME
+        	this.query(hostServer, response.getCNAME());
+        }
+        
+        String resolvedIP = "test.ip.addr";
+        int finalTimeToLive = 12345;
+        System.out.println(fullyQualifiedDomainName + " " + finalTimeToLive + " " + resolvedIP);
         datagramSocket.close();
 		System.out.println("\nHey dude, it looks like it's working...");	
 	}
@@ -141,5 +154,3 @@ public class DNSQuery {
 		return value;
 	}
 }
-
-
