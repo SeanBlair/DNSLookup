@@ -73,7 +73,7 @@ public class DNSQuery {
         if(response.isAnswerCNAME()) {
         	// DNS resolved to a CNAME instead of an IP Address.
         	// Try to now resolve CNAME
-        	String CNAME = response.getCNAME();
+        	//String CNAME = response.getAnswersFirstName();
         	this.query(originalHostServer, response.getAnswersFirstFQDN()); //TODO
         }
         else if(!response.isAuthoritative()) {
@@ -84,7 +84,8 @@ public class DNSQuery {
         		this.query(originalHostServer, response.getFirstNameServerName());
         	}
         }
-        else if(!fqdn.equals(originalFQDN)) { //TODO: this is not working as intended.
+        //else if(!fqdn.equals(originalFQDN)) { //TODO: this is not working as intended.
+        else if (response.getAnswersFirstType() == 5) {	 
         	this.query(response.getAnswersFirstIP(), originalFQDN);
         }
         else {

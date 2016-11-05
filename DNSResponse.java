@@ -401,7 +401,7 @@ public class DNSResponse {
 	
 	public boolean isAnswerCNAME() {
 		boolean isCNAME = false;
-		if (answerCount > 0) {
+		if ((answerCount > 0) && authoritative) {
 			isCNAME = (answers[0].getType() == 5); // CNAME = 5
 		}
 		return isCNAME;
@@ -411,13 +411,18 @@ public class DNSResponse {
 		return nameServers[0].getData();
 	}
 	
-	public String getCNAME() {
+	public String getAnswersFirstName() {
 		return answers[0].getName();
 	}
 	
 	public String getAnswersFirstIP() {
 		return answers[0].getData();
 	}
+	
+	public int getAnswersFirstType() {
+		return (int) answers[0].getType();
+	}
+	
 
 	public int getAnswersFirstTTL() {
 		return (int) answers[0].getTTL();

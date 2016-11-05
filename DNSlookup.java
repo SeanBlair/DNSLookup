@@ -22,7 +22,6 @@ public class DNSlookup {
    * @param args 
    */ 
   public static void main(String[] args) throws Exception { 
-    DNSResponse response; // Just to force compilation 
     int argCount = args.length; 
      
     if (argCount < 2 || argCount > 3) { 
