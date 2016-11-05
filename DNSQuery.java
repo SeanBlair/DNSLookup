@@ -59,19 +59,13 @@ public class DNSQuery {
         
         try {
         datagramSocket.receive(packet);
+        
         } catch (SocketTimeoutException timeoutException) {
         	timeouts++;
-        	//System.out.println("Query timed out.");
-        	trace.add("Query timed out.");
         	
-        	if(timeouts == 2) {
-        		// change these two messages to correct program output.
-        		trace.add("Second time out detected");
-        		// TODO exit with message
-        		trace.add("Query timed out twice..");
-        		printProgramOutput("lookup failed...");
-        		System.exit(-1);
-        		
+        	if(timeouts == 2) {       		
+        		printProgramOutput(originalFQDN + " -2 0.0.0.0");
+        		System.exit(0);
         	}
         	this.query(hostServer, fqdn);
         }
