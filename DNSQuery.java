@@ -84,7 +84,7 @@ public class DNSQuery {
         		this.query(originalHostServer, response.getFirstNameServerName());
         	}
         }
-        else if(!fqdn.equals(originalFQDN)) {
+        else if(!fqdn.equals(originalFQDN)) { //TODO: this is not working as intended.
         	this.query(response.getAnswersFirstIP(), originalFQDN);
         }
         else {
