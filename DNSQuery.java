@@ -66,7 +66,9 @@ public class DNSQuery {
         DNSResponse response = new DNSResponse(responseBuffer, responseBufferSize, fqdn, fqdnLength);
         response.printResponse();
         
-        
+        if(!response.isAuthoritative()) {
+        	this.query(response.getNextServer(), fullyQualifiedDomainName);
+        }
         if(response.isAnswerCNAME()) {
         	// DNS resolved to a CNAME instead of an IP Address.
         	// Try to now resolve CNAME
