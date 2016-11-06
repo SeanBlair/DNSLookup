@@ -92,13 +92,23 @@ public class DNSQuery {
             	return this.query(originalHostServer, response.getAnswersFirstResourceData());
         	} else {
 	    		// Auth true && not CNAME: DONE - print results and return.
-	    		String resolvedIP = response.getAnswersFirstResourceData();
-		        int finalTimeToLive = response.getAnswersFirstResourceTTL();
+        		// This is for an exception thrown by the ca scenario (invalid address...)
+        		
+        		int finalTimeToLive = -1;
+        		String resolvedIP = null;
+        		try {
+        			resolvedIP = response.getAnswersFirstResourceData();
+    		        finalTimeToLive = response.getAnswersFirstResourceTTL();
+        			
+        		} catch (Exception e) {
+        			exitProgram(originalFQDN + " -4 0.0.0.0");
+        		}
+		        
 	        	String answer = originalFQDN + " " + finalTimeToLive + " " + resolvedIP;
 	        	printProgramOutput(answer);
 	        	
 	        	datagramSocket.close();
-				System.out.println("\n===== REACHED THE END =====");
+
 				return null;
         	}
         } 

@@ -69,10 +69,10 @@ public class DNSResponse {
 		
 		authoritative = ((responseData[2] >> 2) & 0x1) == 1;
 		
-		long rCode = byteAsULong(responseData[2]) & 0xf;
+		long rCode = byteAsULong(responseData[3]) & 0xf;
 		if (rCode == 3) {
 			throw new NonExistentNameException();
-		} else if (rCode != 0) {
+		} else if (rCode == 5) {
 			throw new GenericException();
 		}
 		
