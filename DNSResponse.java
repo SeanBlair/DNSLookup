@@ -1,72 +1,33 @@
 import java.util.ArrayList;
 
 
-// Lots of the action associated with handling a DNS query is processing 
-// the response. Although not required you might find the following skeleton of
-// a DNSreponse helpful. The class below has bunch of instance data that typically needs to be 
-// parsed from the response. If you decide to use this class keep in mind that it is just a 
-// suggestion and feel free to add or delete methods to better suit your implementation as 
-// well as instance variables.
-
-
-
 public class DNSResponse {
 	
 	private byte[] responseData;
-    
-	private long queryID;                  // this is for the response it must match the one in the request 
-
-    private boolean authoritative = false; // Is this an authoritative record
-
-    private String fullyQualifiedDomainName;
-
+	private long queryID;                  
+    private boolean authoritative = false; 
     private int fqdnLength = 0;
-    
-    private long answerCount = 0;          // number of answers  
-    private Resource[] answers;
-    
-    private long nameServerCount = 0;              // number of nscount response records
+    private long answerCount = 0;          
+    private Resource[] answers; 
+    private long nameServerCount = 0;
     private Resource[] nameServers;
-    
-    private long additionalRecordCount = 0;      // number of additional (alternate) response records
+    private long additionalRecordCount = 0;   
     private Resource[] additionalRecords;
-    
     private int index = 0;
-    
-    char[] trace;
+    private char[] trace;
 
-    // Note you will almost certainly need some additional instance variables.
 
-    
-//    // When in trace mode you probably want to dump out all the relevant information in a response
-//	void dumpResponse() {
-//
-//		// not sure what this is supposed to do...
-//		// probably simply store the text we need to display
-//		// alternatively, could simply store whole DNSResponse object??
-//		//		this would allow more options with more data...
-//
-//
-//	}
-
-    // The constructor: you may want to add additional parameters, but the two shown are 
-    // probably the minimum that you need.
-
+    // DNSResponse constructor
+    // parses the DNS response bytes into a DNSResponse object
 	public DNSResponse (byte[] data, int len, String fqdn, int fqdnLen) throws NonExistentNameException, GenericException {
 		responseData = data;
 	    fqdnLength = fqdnLen;
 	    
 	    // Extract the query ID
 		queryID = getUInt16(0);
-		
-	    // Make sure the message is a query response and determine
-	    // if it is an authoritative response or note		
-		boolean isResponse = responseData[2] < 0; // needs to be more robust. Works because java bytes are signed.
-		if (!isResponse){
-			// TODO: do something about it...
-			//throw new GenericException();
-		}
-		
+			
+		boolean isResponse = responseData[2] < 0;
+
 		authoritative = ((responseData[2] >> 2) & 0x1) == 1;
 		
 		long rCode = byteAsULong(responseData[3]) & 0xf;
@@ -76,11 +37,8 @@ public class DNSResponse {
 			throw new GenericException();
 		}
 		
-		    // determine answer count
 		answerCount = getUInt16(6); 		
-		// determine NS Count
 		nameServerCount = getUInt16(8); 		
-		// determine additional record count
 		additionalRecordCount = getUInt16(10);
 		
 		// start of QNAME
@@ -103,10 +61,6 @@ public class DNSResponse {
 		parseAdditionalRecords();
 	}
 
-
-    // You will probably want a methods to extract a compressed FQDN, IP address
-    // cname, authoritative DNS servers and other values like the query ID etc.
-	
 	
 	// creates an array of Resource objects representing each Additional Record resource
 	// increments responseData index to beginning of next section.
@@ -118,6 +72,7 @@ public class DNSResponse {
 			}
 		}	
 	}
+	
 	
 	// creates an array of Resource objects representing each Nameserver resource
 	// increments responseData index to beginning of next section.
@@ -163,16 +118,18 @@ public class DNSResponse {
 		return resource;
 	}
 
+	// returns the RDATA section of a resource
+	// and increments the responseData index
 	private String getResourceData(long resourceType) {
 		String resourceData = "";
 		if (resourceType == 1) {  // type A : host ip address.
 			resourceData = parseIpAddress();
 		} else if (resourceType == 28) { // type AAAA ipv6 address
 			resourceData = parseIpv6Address();
-		} else if (resourceType == 2 || resourceType == 5){
+		} else if (resourceType == 2 || resourceType == 5){  // type NS and type CNAME
 			resourceData = parseWord();
 		} else {
-			resourceData = "----";
+			resourceData = "----";   // all other types
 		}
 		return resourceData;
 	}
@@ -286,22 +243,19 @@ public class DNSResponse {
 	    return value;
 	}
 	
+	// based on stack overflow post
 	private long getUInt16(int index ) {
 		long value = byteAsULong(responseData[index]) << 8 | (byteAsULong(responseData[index + 1]));
 		return value;
 	}
 
-	
-    // You will also want methods to extract the response records and record
-    // the important values they are returning. Note that an IPV6 reponse record
-    // is of type 28. It probably wouldn't hurt to have a response record class to hold
-    // these records. 
-	
-	
+	// returns true if response is Authoritative
+	// false otherwise
 	public boolean isAuthoritative() {
 		return authoritative;
 	}
 
+	// returns the full text of a valid DNS response
 	public ArrayList<String> getTrace() {
 		ArrayList<String> list = new ArrayList<String>();
 		list.add("Response ID: " + queryID + " Authoritative " + authoritative);
@@ -323,6 +277,9 @@ public class DNSResponse {
 		return list;
 	}
 
+	
+	// returns the contents of a response Resource array in a list of strings
+	// each string represents one resource record.
 	private ArrayList<String> getTraceSection(Resource[] resourceArray) {
 		ArrayList<String> list = new ArrayList<String>();
 		for (int i = 0; i < resourceArray.length; i++) {
@@ -333,10 +290,12 @@ public class DNSResponse {
 	}
 
 	
+	// returns first Additional Information Resource data string;
 	public String getNextServer() {
 		return additionalRecords[0].getData();
 	}
 	
+	// returns true if response's answer is a CNAME
 	public boolean isAnswerCNAME() {
 		boolean isCNAME = false;
 		if ((answerCount > 0) && authoritative) {
@@ -345,32 +304,39 @@ public class DNSResponse {
 		return isCNAME;
 	}
 	
+	// returns first Name Servers Resource name string;
 	public String getFirstNameServerName() {
 		return nameServers[0].getData();
 	}
 	
+	// returns first Answers Resource name string;
 	public String getAnswersFirstResourceName() {
 		return answers[0].getName();
 	}
 	
+	// returns first Answers Resource data string
 	public String getAnswersFirstResourceData() {
 		return answers[0].getData();
 	}
 	
+	// returns an integer representing the type of the first Answer Resource
 	public int getAnswersFirstResourceType() {
 		return (int) answers[0].getType();
 	}
 	
-
+	// returns an integer representing the TTL of the first Answer Resource
 	public int getAnswersFirstResourceTTL() {
 		return (int) answers[0].getTTL();
 	}
 	
+	// returns true if no Additional Information resources
 	public boolean isAdditionalInformationEmpty() {
 		return additionalRecordCount == 0;
 	}
 	
 	// returns IP for NameServer and null if invalid
+	// verifies that the IP address returned is for 
+	// a server in the Name Server section;
 	public String getValidNameServerIP() {
 
 		for (int i = 0; i < nameServerCount; i++) {
