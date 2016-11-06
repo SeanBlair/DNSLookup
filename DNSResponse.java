@@ -16,9 +16,9 @@ public class DNSResponse {
 	private int responseArrayLength;
     
 	private long queryID;                  // this is for the response it must match the one in the request 
-//    private boolean decoded = false;      // Was this response successfully decoded
+
     private boolean authoritative = false;// Is this an authoritative record
-    
+
     private String fullyQualifiedDomainName;
     private int fqdnLength = 0;
     
@@ -52,7 +52,7 @@ public class DNSResponse {
     // The constructor: you may want to add additional parameters, but the two shown are 
     // probably the minimum that you need.
 
-	public DNSResponse (byte[] data, int len, String fqdn, int fqdnLen) {
+	public DNSResponse (byte[] data, int len, String fqdn, int fqdnLen) throws NonExistentNameException, GenericException {
 		responseData = data;
 		responseArrayLength = len;
 	    fullyQualifiedDomainName = fqdn;
@@ -66,9 +66,18 @@ public class DNSResponse {
 		boolean isResponse = responseData[2] < 0; // needs to be more robust. Works because java bytes are signed.
 		if (!isResponse){
 			// TODO: do something about it...
+			throw new GenericException();
 		}
 		
 		authoritative = ((responseData[2] >> 2) & 0x1) == 1;
+		
+		long rCode = byteAsULong(responseData[2]) & 0xf;
+		if (rCode == 3) {
+			throw new NonExistentNameException();
+		} else if (rCode != 0) {
+			throw new GenericException();
+		}
+		
 		    // determine answer count
 		answerCount = getUInt16(6); 		
 		// determine NS Count

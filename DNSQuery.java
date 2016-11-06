@@ -68,9 +68,19 @@ public class DNSQuery {
         	}
         	this.query(hostServer, fqdn);
         }
+        DNSResponse response = null;
         
-        DNSResponse response = new DNSResponse(responseBuffer, responseBufferSize, fqdn, fqdnLength);
-        //response.printResponse();
+        try {
+        	response = new DNSResponse(responseBuffer, responseBufferSize, fqdn, fqdnLength);   
+        	
+        } catch (NonExistentNameException e) {
+        	exitProgram(originalFQDN + " -1 0.0.0.0");
+        	
+        } catch (GenericException e) {
+        	exitProgram(originalFQDN + " -4 0.0.0.0");
+        }
+        
+        
         trace.addAll(response.getTrace());  // might cause exceptions indicating invalid response that should be caught and dealt with.
         
         if(response.isAuthoritative()) {
