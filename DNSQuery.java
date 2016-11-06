@@ -36,13 +36,20 @@ public class DNSQuery {
 		setupSocket();  // Create socket with 5 second timeout set.
 	}
 	
-	public String query(String hostServer, String fullyQualifiedDomainName) throws Exception{
+	/**
+	 * @param nameServerIP					The IP of the root name server.
+	 * @param fullyQualifiedDomainName		The fully qualified domain name.
+	 * 
+	 * @return		The resolved IP if query is for name server. Null otherwise.
+	 * @throws Exception		
+	 */
+	public String query(String nameServerIP, String fullyQualifiedDomainName) throws Exception{
 		this.numQueries++;
 		if(numQueries >= 30) {
 			exitProgram(originalFQDN + " -3 0.0.0.0");
 		}
 		
-		InetAddress rootNameServer = InetAddress.getByName(hostServer);
+		InetAddress rootNameServer = InetAddress.getByName(nameServerIP);
 		
 		String fqdn = fullyQualifiedDomainName;
 		int fqdnLength = fqdn.length();
@@ -65,7 +72,7 @@ public class DNSQuery {
         	if(timeouts == 2) {  
         		exitProgram(originalFQDN + " -2 0.0.0.0");
         	}
-        	this.query(hostServer, fqdn);
+        	this.query(nameServerIP, fqdn);
         }
         
         DNSResponse response = new DNSResponse(responseBuffer, responseBufferSize, fqdn, fqdnLength);
@@ -106,6 +113,9 @@ public class DNSQuery {
         return null;
 	}
 	
+	/**
+	 * @return The smallest TTL value in the ttlValues array.
+	 */
 	private int getSmallestTTL() {
 		int minTTL = Integer.MAX_VALUE;
 		for(Integer i : ttlValues) {
@@ -121,13 +131,13 @@ public class DNSQuery {
 		System.exit(0);	
 	}
 
-	private void printProgramOutput(String string) 
-	{if (tracingOn) {
-    	for (String line : trace) {
-    		System.out.println(line);
-    	}
-    }
-    System.out.println(string);
+	private void printProgramOutput(String string) {
+		if (tracingOn) {
+			for (String line : trace) {
+				System.out.println(line);
+			}
+		}
+		System.out.println(string);
 	}
 
 	private void setupSocket() throws SocketException{
@@ -136,14 +146,18 @@ public class DNSQuery {
 		datagramSocket.setSoTimeout(5000);
 	}
 	
-	// Construct initial DNS Query, returns query ID
+	/**
+	 * @param requestBuffer		Request buffer that needs to be constructed.
+	 * @param fqdn				The fully qualified domain name.
+	 * @return The query ID.
+	 * 
+	 * Constructs DNS query.
+	 */
 	private long setupRequestBuffer(byte[] requestBuffer, String fqdn) {
-		// assign a random number as queryId
-		// TODO look into a more complete implementation
 		int index = 0;
 		
 		Random r = new Random();
-		int id = r.nextInt(126); 
+		int id = r.nextInt(126); // Assign a random number as query id. 
 		requestBuffer[index++] = (byte) id;
 		id = r.nextInt(255);
 		requestBuffer[index++] = (byte) id;
