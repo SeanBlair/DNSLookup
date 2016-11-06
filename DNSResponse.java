@@ -1,6 +1,10 @@
 import java.util.ArrayList;
 
-
+/**
+ * 
+ * @author Gurjot and Sean
+ *
+ */
 public class DNSResponse {
 	
 	private byte[] responseData;

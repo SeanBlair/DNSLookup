@@ -1,3 +1,9 @@
+
+/**
+ * 
+ * @author Gurjot and Sean
+ *
+ */
 public class Resource {
 
 	private String name;
@@ -7,6 +13,16 @@ public class Resource {
 	private long dataLength;
 	private String data;
 	
+	/**
+	 * Represents a DNS resource entry
+	 * 
+	 * @param rName   Resource Name
+	 * @param rType	  Resource Type
+	 * @param rClass  Resource Class
+	 * @param ttl	  Resource Time to live
+	 * @param dLength Resource data length
+	 * @param d       Resource data
+	 */
 	public Resource(String rName, long rType, long rClass, long ttl, long dLength, String d) {
 		this.name = rName;
 		this.resourceType = rType;
@@ -40,15 +56,20 @@ public class Resource {
 		return data;
 	}
 
-	public void print() {
-		System.out.format("       %-30s %-10d %-4s %s\n", name, TTL, resourceType, data);
-	}
-
+	/**
+	 * 
+	 * @return a String representing this Resource
+	 */
 	public String getString() {
 		String type = translateType((int) resourceType);
 		return String.format("       %-30s %-10d %-4s %s", name, TTL, type, data);
 	}
 
+	/**
+	 * 
+	 * @param resourceType  integer representing a Type of Resource
+	 * @return  text representation of resourceType
+	 */
 	private String translateType(int resourceType) {
 		switch (resourceType) {
 			case 1 : return "A";
