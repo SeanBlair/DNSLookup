@@ -58,7 +58,6 @@ public class Resource {
 	}
 
 	/**
-	 * 
 	 * @param resourceType  Integer representing a Type of Resource.
 	 * @return  The text representation of resourceType.
 	 */
