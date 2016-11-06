@@ -42,9 +42,6 @@ public class DNSlookup {
     } catch (SocketException e) {
     	// TODO
     	System.out.println("Socket failed to create.");
-    } catch (Exception e) {
-    	// TODO
-    	System.out.println("Unknown error occured.");
     }
   } 
  

@@ -64,7 +64,7 @@ public class DNSResponse {
 		boolean isResponse = responseData[2] < 0; // needs to be more robust. Works because java bytes are signed.
 		if (!isResponse){
 			// TODO: do something about it...
-			throw new GenericException();
+			//throw new GenericException();
 		}
 		
 		authoritative = ((responseData[2] >> 2) & 0x1) == 1;
