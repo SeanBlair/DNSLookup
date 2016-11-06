@@ -101,14 +101,13 @@ public class DNSQuery {
         		String resolvedIP = null;
         		try {
         			resolvedIP = response.getAnswersFirstResourceData();
-    		        finalTimeToLive = response.getAnswersFirstResourceTTL();
-        			
+        			ttlValues.add(response.getAnswersFirstResourceTTL());	// Save TTL.
         		} catch (Exception e) {
         			exitProgram(originalFQDN + " -4 0.0.0.0");
         		}
 		        
 	        	String answer = originalFQDN + " " + finalTimeToLive + " " + resolvedIP;
-	    		ttlValues.add(response.getAnswersFirstResourceTTL());	// Save TTL.
+	    		finalTimeToLive = getSmallestTTL();
 	        	printProgramOutput(answer);
 	        	datagramSocket.close();
 				return null;
