@@ -17,12 +17,9 @@ public class DNSResponse {
 	private long queryID;                  // this is for the response it must match the one in the request 
 
     private boolean authoritative = false;// Is this an authoritative record
-<<<<<<< HEAD
 
     private String fullyQualifiedDomainName;
-=======
-    
->>>>>>> 645da378a26b5279d72b88302a2e3803d876ab7d
+
     private int fqdnLength = 0;
     
     private long answerCount = 0;          // number of answers  
