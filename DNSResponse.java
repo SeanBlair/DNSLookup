@@ -18,18 +18,16 @@ public class DNSResponse {
     private long additionalRecordCount = 0;   
     private Resource[] additionalRecords;
     private int index = 0;
-    private char[] trace;
 
-
-    // DNSResponse constructor
-    // parses the DNS response bytes into a DNSResponse object
     /**
-     * @param data   array of DNS response bytes
-     * @param len	 length of data array
-     * @param fqdn   the fully qualified domain name to search IP for
-     * @param fqdnLen   length of fqdn
-     * @throws NonExistentNameException   triggers a -1 error code
-      * @throws GenericException          triggers a -4 error code
+     * @param data   	Array of DNS response bytes
+     * @param len	 	Length of data array
+     * @param fqdn   	The fully qualified domain name to search IP for
+     * @param fqdnLen   Length of fqdn
+     * @throws NonExistentNameException   	Triggers a -1 error code
+     * @throws GenericException          	Triggers a -4 error code
+     * 
+     * Used to parse the DNS response bytes into a DNSResponse object.
      */
 	public DNSResponse (byte[] data, int len, String fqdn, int fqdnLen) throws NonExistentNameException, GenericException {
 		responseData = data;
@@ -37,8 +35,6 @@ public class DNSResponse {
 	    
 	    // Extract the query ID
 		queryID = getUInt16(0);
-			
-		boolean isResponse = responseData[2] < 0;
 
 		authoritative = ((responseData[2] >> 2) & 0x1) == 1;
 		
@@ -53,9 +49,9 @@ public class DNSResponse {
 		nameServerCount = getUInt16(8); 		
 		additionalRecordCount = getUInt16(10);
 		
-		// start of QNAME
+		// Start of QNAME
 		index = 12; 		
-		// end of QNAME
+		// End of QNAME
 		index += fqdnLength + 1; 		
 		// 0 byte
 		int end = responseData[index++];
@@ -65,9 +61,8 @@ public class DNSResponse {
 		long qClass = getUInt16(index++);
 		index++;
 		
-		// Answer starts at data[index]	
-	    // Extract list of answers, name server, and additional information response 
-	    // records
+		// Answer starts at data[index].
+	    // Extract list of answers, name server, and additional information response records.
 		parseAnswers();
 		parseNameServerRecords();
 		parseAdditionalRecords();
@@ -75,8 +70,8 @@ public class DNSResponse {
 
 	
 	/**
-	 *  creates an array of Resource objects representing each Additional Record resource
-	 *  increments responseData index to beginning of next section.
+	 *  Creates an array of Resource objects representing each Additional Record resource
+	 *  Also increments responseData index to beginning of next section.
 	 */
 	private void parseAdditionalRecords() {
 		if (additionalRecordCount > 0) {
@@ -88,8 +83,8 @@ public class DNSResponse {
 	}
 	
 	/**
-	 *  creates an array of Resource objects representing each Name Servers resource
-	 *  increments responseData index to beginning of next section.
+	 *  Creates an array of Resource objects representing each Name Servers resource
+	 *  Also increments responseData index to beginning of next section.
 	 */
 	private void parseNameServerRecords() {
 		if (nameServerCount > 0) {
@@ -101,8 +96,8 @@ public class DNSResponse {
 	}
 	
 	/**
-	 *  creates an array of Resource objects representing each Answers resource
-	 *  increments responseData index to beginning of next section.
+	 *  Creates an array of Resource objects representing each Answers resource
+	 *  Also increments responseData index to beginning of next section.
 	 */
 	private void parseAnswers() {
 		if (answerCount > 0) {
@@ -115,8 +110,8 @@ public class DNSResponse {
 
 	
 	/**
-	 * @return a Resource object representing a resource record
-	 * increments responseData index to beginning of next resource
+	 * @return A Resource object representing a resource record.
+	 * Also increments responseData index to beginning of next resource.
 	 */	
 	private Resource parseResource() {
 		Resource resource;
@@ -139,9 +134,10 @@ public class DNSResponse {
 	}
 
 	/**
-	 * @param resourceType  the RTYPE of the Resource
-	 * @return  the RDATA of the Resource
-	 * increments the responseData index
+	 * @param resourceType  	The RTYPE of the Resource.
+	 * @return  The RDATA of the Resource.
+	 * 
+	 * Increments the responseData index.
 	 */
 	private String getResourceData(long resourceType) {
 		String resourceData = "";
@@ -159,9 +155,8 @@ public class DNSResponse {
 
 
 	/**
-	 * 
-	 * @return  ipv6 address 
-	 * and increments the responseData index.
+	 * @return  The IPv6 address.
+	 * Also increments the responseData index.
 	 */
 	private String parseIpv6Address() {
 		String address = "";
@@ -183,8 +178,8 @@ public class DNSResponse {
 	}
 	
 	/**
-	 * @return IP address 
-	 * and increments the responseData index
+	 * @return The IPv4 address 
+	 * Also increments the responseData index.
 	 */
 	private String parseIpAddress() {
 		String address = "";
@@ -197,8 +192,8 @@ public class DNSResponse {
 	}
 	
 	/**
-	 * @return string from responseData terminated by 0
-	 * increments responseData index to beginning of next section.	 
+	 * @return 		The string from responseData terminated by 0.
+	 * Also increments responseData index to beginning of next section.	 
 	 */
 	private String parseWord() {
 		String word = "";
@@ -208,22 +203,22 @@ public class DNSResponse {
 			
 			if (size < 0) {
 				long pointerValue = getUInt16(index); 
-				index += 2;              				// increment past second pointer byte.
+				index += 2;              				// Increment past second pointer byte.
 				long offset = (pointerValue & 0x000000003fffL);  
 				word = parsePointerWord(offset);
 				
 			} else {
-				index++; 								// increment past size byte
+				index++; 								// Increment past size byte
 				String label = parseLabel(index, size);
 				word += label;
-				index += size;							// increment past size of label
+				index += size;							// Increment past size of label
 				word += parseWord();
 			}
 		} else {
-			index++;									// increment past size byte
+			index++;									// Increment past size byte
 		}
 		
-		// remove period from end of string
+		// Remove period from end of string.
 		if (!word.equals("")) {
 			if (word.substring(word.length() - 1, word.length()).equals(".")) {
 				word = word.substring(0, word.length() - 1);
@@ -233,9 +228,9 @@ public class DNSResponse {
 	}
 
 	/**
-	 * @param idx  index of responseData 
-	 * @return  sequence of characters terminated by 0
-	 * does not mutate responseData index
+	 * @param idx  		Index of responseData. 
+	 * @return  The sequence of characters terminated by 0.
+	 * Note: This does not mutate responseData index.
 	 */
 	private String parsePointerWord(long idx) {
 		String word = "";
@@ -256,7 +251,7 @@ public class DNSResponse {
 		return word;
 	}
 
-	// returns label Ex: www.  dude.
+	// Returns label Ex: www.  dude.
 	private String parseLabel(int idx, int size) {
 		String label = "";
 		for (int i = 0; i < size; i++) {
@@ -266,32 +261,28 @@ public class DNSResponse {
 		return label + ".";
 	}
 
-	// based on stack overflow post
 	private long byteAsULong(byte b) {
 	    return ((long)b) & 0x00000000000000FFL; 
 	}
 
-	// based on stack overflow post
 	private long getUInt32(int index) {
 	    long value = byteAsULong(responseData[index++]) << 24 | (byteAsULong(responseData[index++]) << 16) | 
 	    		(byteAsULong(responseData[index++]) << 8) | (byteAsULong(responseData[index]));
 	    return value;
 	}
-	
-	// based on stack overflow post
+
 	private long getUInt16(int index ) {
 		long value = byteAsULong(responseData[index]) << 8 | (byteAsULong(responseData[index + 1]));
 		return value;
 	}
 
-	// returns true if response is Authoritative
-	// false otherwise
+	// Returns true if response is Authoritative, false otherwise
 	public boolean isAuthoritative() {
 		return authoritative;
 	}
 
 	/**
-	 * @return  the full text of a valid DNS response
+	 * @return  The full text of a valid DNS response.
 	 */
 	public ArrayList<String> getTrace() {
 		ArrayList<String> list = new ArrayList<String>();
@@ -315,8 +306,8 @@ public class DNSResponse {
 	}
 
 	
-	// returns the contents of a response Resource array in a list of strings
-	// each string represents one resource record.
+	// Returns the contents of a response Resource array in a list of strings.
+	// Each string represents one resource record.
 	private ArrayList<String> getTraceSection(Resource[] resourceArray) {
 		ArrayList<String> list = new ArrayList<String>();
 		for (int i = 0; i < resourceArray.length; i++) {
@@ -327,12 +318,12 @@ public class DNSResponse {
 	}
 
 	
-	// returns first Additional Information Resource data string;
+	// Returns first Additional Information Resource data string.
 	public String getNextServer() {
 		return additionalRecords[0].getData();
 	}
 	
-	// returns true if response's answer is a CNAME
+	// Returns true if response's answer is a CNAME.
 	public boolean isAnswerCNAME() {
 		boolean isCNAME = false;
 		if ((answerCount > 0) && authoritative) {
@@ -341,39 +332,39 @@ public class DNSResponse {
 		return isCNAME;
 	}
 	
-	// returns first Name Servers Resource name string;
+	// Returns first Name Servers Resource name string.
 	public String getFirstNameServerName() {
 		return nameServers[0].getData();
 	}
 	
-	// returns first Answers Resource name string;
+	// Returns first Answers Resource name string.
 	public String getAnswersFirstResourceName() {
 		return answers[0].getName();
 	}
 	
-	// returns first Answers Resource data string
+	// Returns first Answers Resource data string.
 	public String getAnswersFirstResourceData() {
 		return answers[0].getData();
 	}
 	
-	// returns an integer representing the type of the first Answer Resource
+	// Returns an integer representing the type of the first Answer Resource.
 	public int getAnswersFirstResourceType() {
 		return (int) answers[0].getType();
 	}
 	
-	// returns an integer representing the TTL of the first Answer Resource
+	// Returns an integer representing the TTL of the first Answer Resource.
 	public int getAnswersFirstResourceTTL() {
 		return (int) answers[0].getTTL();
 	}
 	
-	// returns true if no Additional Information resources
+	// Returns true if no Additional Information resources.
 	public boolean isAdditionalInformationEmpty() {
 		return additionalRecordCount == 0;
 	}
 	
 	/**
 	 * @return IP for a Name Server if in both Name Servers section
-	 * and Additional Information section; null otherwise
+	 * 		   and Additional Information section; null otherwise
 	 */
 	public String getValidNameServerIP() {
 
