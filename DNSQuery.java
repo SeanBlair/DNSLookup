@@ -16,7 +16,7 @@ public class DNSQuery {
 	
 	private boolean resolvingNameServer = false;
 	private boolean tracingOn;
-	private int timeouts, numQueries;
+	private int numQueries;
 	private DatagramSocket datagramSocket;
 	private String originalHostServer, originalFQDN;
 	private int responseBufferSize;
@@ -26,7 +26,6 @@ public class DNSQuery {
 	public DNSQuery(String originalHostServer, String originalFQDN, boolean tracingOn) throws SocketException{
 		this.tracingOn = tracingOn;
 		this.responseBufferSize = 512;
-		this.timeouts = 0;
 		this.numQueries = 0;
 		this.originalHostServer = originalHostServer;
 		this.originalFQDN = originalFQDN;
@@ -43,7 +42,8 @@ public class DNSQuery {
 	 * @return		The resolved IP if query is for name server. Null otherwise.
 	 * @throws Exception		
 	 */
-	public String query(String nameServerIP, String fullyQualifiedDomainName) throws Exception{
+	public String query(String nameServerIP, String fullyQualifiedDomainName) throws Exception {
+		int timeouts = 0;
 		this.numQueries++;
 		if(numQueries >= 30) {
 			exitProgram(originalFQDN + " -3 0.0.0.0");
