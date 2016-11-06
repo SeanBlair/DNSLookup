@@ -388,4 +388,17 @@ public class DNSResponse {
 		}
 		return null;
 	}
+	
+	public int getAnswerCount() {
+		return (int) answerCount;
+	}
+	
+	public ArrayList<String> getAllAnswersData() {
+		ArrayList<String> list = new ArrayList<String>();
+		for (int i = 0; i < answerCount; i++) {
+			list.add(answers[i].getData());
+		}
+		return list;
+	}
+	
 }

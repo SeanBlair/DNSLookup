@@ -98,16 +98,20 @@ public class DNSQuery {
         	} else {
         		// Auth true && not CNAME: DONE - print results.
         		int finalTimeToLive = -1;
-        		String resolvedIP = null;
+        		ArrayList<String> resolvedIPs = new ArrayList<String>();
         		try {
-        			resolvedIP = response.getAnswersFirstResourceData();
+        			resolvedIPs = response.getAllAnswersData();
         			ttlValues.add(response.getAnswersFirstResourceTTL());	// Save TTL.
         		} catch (Exception e) {
         			exitProgram(originalFQDN + " -4 0.0.0.0");
         		}
 		        
-	        	String answer = originalFQDN + " " + finalTimeToLive + " " + resolvedIP;
-	    		finalTimeToLive = getSmallestTTL();
+        		finalTimeToLive = getSmallestTTL();
+	        	String answer = "";
+	        	for (String ip : resolvedIPs) {
+	        		answer += originalFQDN + " " + finalTimeToLive + " " + ip + "\n";
+	        	}
+	        	
 	        	printProgramOutput(answer);
 	        	datagramSocket.close();
 				return null;
