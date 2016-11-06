@@ -3,6 +3,8 @@ all:
 	javac DNSResponse.java
 	javac Resource.java
 	javac DNSQuery.java
+	javac NonExistentNameException
+	javac GenericException
 	
 	jar cvfe DNSlookup.jar DNSlookup *.class
 
