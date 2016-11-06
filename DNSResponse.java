@@ -19,6 +19,14 @@ public class DNSResponse {
 
     // DNSResponse constructor
     // parses the DNS response bytes into a DNSResponse object
+    /**
+     * @param data   array of DNS response bytes
+     * @param len	 length of data array
+     * @param fqdn   the fully qualified domain name to search IP for
+     * @param fqdnLen   length of fqdn
+     * @throws NonExistentNameException   triggers a -1 error code
+      * @throws GenericException          triggers a -4 error code
+     */
 	public DNSResponse (byte[] data, int len, String fqdn, int fqdnLen) throws NonExistentNameException, GenericException {
 		responseData = data;
 	    fqdnLength = fqdnLen;
@@ -62,8 +70,10 @@ public class DNSResponse {
 	}
 
 	
-	// creates an array of Resource objects representing each Additional Record resource
-	// increments responseData index to beginning of next section.
+	/**
+	 *  creates an array of Resource objects representing each Additional Record resource
+	 *  increments responseData index to beginning of next section.
+	 */
 	private void parseAdditionalRecords() {
 		if (additionalRecordCount > 0) {
 			additionalRecords = new Resource[(int) additionalRecordCount];
@@ -73,9 +83,10 @@ public class DNSResponse {
 		}	
 	}
 	
-	
-	// creates an array of Resource objects representing each Nameserver resource
-	// increments responseData index to beginning of next section.
+	/**
+	 *  creates an array of Resource objects representing each Name Servers resource
+	 *  increments responseData index to beginning of next section.
+	 */
 	private void parseNameServerRecords() {
 		if (nameServerCount > 0) {
 			nameServers = new Resource[(int) nameServerCount];
@@ -84,9 +95,11 @@ public class DNSResponse {
 			}
 		}
 	}
-
-	// creates an array of Resource objects representing each Answer resource
-	// increments responseData index to beginning of next section.
+	
+	/**
+	 *  creates an array of Resource objects representing each Answers resource
+	 *  increments responseData index to beginning of next section.
+	 */
 	private void parseAnswers() {
 		if (answerCount > 0) {
 			answers = new Resource[(int) answerCount];
@@ -96,8 +109,11 @@ public class DNSResponse {
 		}
 	}
 
-	// returns a Resource object representing a resource record
-	// increments responseData index to beginning of next resource
+	
+	/**
+	 * @return a Resource object representing a resource record
+	 * increments responseData index to beginning of next resource
+	 */	
 	private Resource parseResource() {
 		Resource resource;
 		
@@ -118,8 +134,11 @@ public class DNSResponse {
 		return resource;
 	}
 
-	// returns the RDATA section of a resource
-	// and increments the responseData index
+	/**
+	 * @param resourceType  the RTYPE of the Resource
+	 * @return  the RDATA of the Resource
+	 * increments the responseData index
+	 */
 	private String getResourceData(long resourceType) {
 		String resourceData = "";
 		if (resourceType == 1) {  // type A : host ip address.
@@ -135,7 +154,11 @@ public class DNSResponse {
 	}
 
 
-	// returns ipv6 address and increments the responseData index.
+	/**
+	 * 
+	 * @return  ipv6 address 
+	 * and increments the responseData index.
+	 */
 	private String parseIpv6Address() {
 		String address = "";
 		for (int i = 0; i < 8; i++) {
@@ -154,8 +177,11 @@ public class DNSResponse {
 	address = address.substring(0, address.length() - 1);
 	return address;
 	}
-
-	// returns ip address and increments responseData index
+	
+	/**
+	 * @return IP address 
+	 * and increments the responseData index
+	 */
 	private String parseIpAddress() {
 		String address = "";
 		for (int i = 0; i < 4; i++) {
@@ -165,9 +191,11 @@ public class DNSResponse {
 		address = address.substring(0, address.length() - 1);
 		return address;
 	}
-
-	// returns a string from responseData terminated by 0
-	// increment responseData index to beginning of next section.
+	
+	/**
+	 * @return string from responseData terminated by 0
+	 * increments responseData index to beginning of next section.	 
+	 */
 	private String parseWord() {
 		String word = "";
 		int size = responseData[index];
@@ -200,8 +228,11 @@ public class DNSResponse {
 		return word;
 	}
 
-	// returns string terminated by 0
-	// does not mutate responseData index
+	/**
+	 * @param idx  index of responseData 
+	 * @return  sequence of characters terminated by 0
+	 * does not mutate responseData index
+	 */
 	private String parsePointerWord(long idx) {
 		String word = "";
 		int size = responseData[(int) idx];
@@ -255,7 +286,9 @@ public class DNSResponse {
 		return authoritative;
 	}
 
-	// returns the full text of a valid DNS response
+	/**
+	 * @return  the full text of a valid DNS response
+	 */
 	public ArrayList<String> getTrace() {
 		ArrayList<String> list = new ArrayList<String>();
 		list.add("Response ID: " + queryID + " Authoritative " + authoritative);
@@ -334,9 +367,10 @@ public class DNSResponse {
 		return additionalRecordCount == 0;
 	}
 	
-	// returns IP for NameServer and null if invalid
-	// verifies that the IP address returned is for 
-	// a server in the Name Server section;
+	/**
+	 * @return IP for a Name Server if in both Name Servers section
+	 * and Additional Information section; null otherwise
+	 */
 	public String getValidNameServerIP() {
 
 		for (int i = 0; i < nameServerCount; i++) {
