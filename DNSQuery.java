@@ -21,8 +21,9 @@ public class DNSQuery {
 	private String originalHostServer, originalFQDN;
 	private int responseBufferSize;
 	private ArrayList<String> trace;
+	private ArrayList<Integer> ttlValues;
 	
-	public DNSQuery(String originalHostServer, String originalFQDN, boolean tracingOn){
+	public DNSQuery(String originalHostServer, String originalFQDN, boolean tracingOn) throws SocketException{
 		this.tracingOn = tracingOn;
 		this.responseBufferSize = 512;
 		this.timeouts = 0;
@@ -30,23 +31,23 @@ public class DNSQuery {
 		this.originalHostServer = originalHostServer;
 		this.originalFQDN = originalFQDN;
 		this.trace = new ArrayList<String>();
+		this.ttlValues = new ArrayList<Integer>();
+		
+		setupSocket();  // Create socket with 5 second timeout set.
 	}
 	
-	/**
-	 * @param args
-	 */
-	public String query(String hostServer, String fullyQualifiedDomainName) throws SocketException, Exception {
+	public String query(String hostServer, String fullyQualifiedDomainName) throws Exception{
+		this.numQueries++;
 		if(numQueries >= 30) {
 			exitProgram(originalFQDN + " -3 0.0.0.0");
 		}
-		this.numQueries++;
+		
 		InetAddress rootNameServer = InetAddress.getByName(hostServer);
 		
 		String fqdn = fullyQualifiedDomainName;
 		int fqdnLength = fqdn.length();
 		byte[] requestBuffer = new byte[fqdnLength + 18]; // 18 additional bytes for the hard-coded fields and random id. 
-		long queryID = setupRequestBuffer(requestBuffer, fqdn);
-		setupSocket();
+		long queryID = setupRequestBuffer(requestBuffer, fqdn); 
 		
 		trace.add("\n\nQuery ID     " + queryID + " " + fqdn + " --> " + rootNameServer.getHostAddress());
 		
@@ -59,10 +60,8 @@ public class DNSQuery {
         
         try {
         datagramSocket.receive(packet);
-        
         } catch (SocketTimeoutException timeoutException) {
         	timeouts++;
-        	
         	if(timeouts == 2) {  
         		exitProgram(originalFQDN + " -2 0.0.0.0");
         	}
@@ -79,34 +78,44 @@ public class DNSQuery {
         	}
         	if(response.isAnswerCNAME()) {
         		// DNS resolved to a CNAME instead of an IP Address.
+        		ttlValues.add(response.getAnswersFirstResourceTTL()); 	// Save TTL.
             	return this.query(originalHostServer, response.getAnswersFirstResourceData());
         	} else {
-	    		// Auth true && not CNAME: DONE - print results and return.
+	    		// Auth true && not CNAME: DONE - print results.
 	    		String resolvedIP = response.getAnswersFirstResourceData();
-		        int finalTimeToLive = response.getAnswersFirstResourceTTL();
-	        	String answer = originalFQDN + " " + finalTimeToLive + " " + resolvedIP;
+	    		ttlValues.add(response.getAnswersFirstResourceTTL());	// Save TTL.
+	        	String answer = originalFQDN + " " + getSmallestTTL() + " " + resolvedIP;
 	        	printProgramOutput(answer);
-	        	
 	        	datagramSocket.close();
 				System.out.println("\n===== REACHED THE END =====");
-				return null;
         	}
         } 
         else {
         	if(response.getValidNameServerIP() != null) {
-        		// case match
+        		// Matching name server and additional info entry.
         		return this.query(response.getValidNameServerIP(), fullyQualifiedDomainName);
         	} else {
-        		// case no match, need to resolve name server
+        		// No match, need to resolve name server.
         		resolvingNameServer = true;
         		String resolvedNameServerIP = this.query(originalHostServer, response.getFirstNameServerName());
         		resolvingNameServer = false;
         		this.query(resolvedNameServerIP, originalFQDN);
         	}
         }
+        
         return null;
 	}
 	
+	private int getSmallestTTL() {
+		int minTTL = Integer.MAX_VALUE;
+		for(Integer i : ttlValues) {
+			if(i < minTTL) {
+				minTTL = i;
+			}
+		}
+		return minTTL;
+	}
+
 	private void exitProgram(String string) {
 		printProgramOutput(string);
 		System.exit(0);	
@@ -184,12 +193,10 @@ public class DNSQuery {
 		return queryID;
 	}
 	
-	// based on stack overflow post
 	private static long byteAsULong(byte b) {
 	    return ((long)b) & 0x00000000000000FFL; 
 	}
 
-	// based on stack overflow post
 	private long getUInt16(int index, byte[] requestBuffer) {
 		long value = byteAsULong(requestBuffer[index]) << 8 | (byteAsULong(requestBuffer[index + 1]));
 		return value;
