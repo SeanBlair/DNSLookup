@@ -94,7 +94,6 @@ public class DNSQuery {
 	        	String answer = originalFQDN + " " + getSmallestTTL() + " " + resolvedIP;
 	        	printProgramOutput(answer);
 	        	datagramSocket.close();
-				System.out.println("\n===== REACHED THE END =====");
         	}
         } 
         else {
