@@ -1,13 +1,3 @@
- 
-import java.net.DatagramSocket; 
-import java.net.InetAddress; 
-import java.net.SocketException;
-import java.util.Random; 
- 
-/** 
- *  
- */ 
- 
 /** 
  * @author Donald Acton 
  * This example is adapted from Kurose & Ross 
@@ -35,15 +25,9 @@ public class DNSlookup {
     if (argCount == 3 && args[2].equals("-t")) 
         tracingOn = true; 
      
-    // Send the query
-    
-    try {
-    	DNSQuery queryHandler = new DNSQuery(hostServer, fqdn, tracingOn);
-    	queryHandler.query(hostServer, fqdn);
-    } catch (SocketException e) {
-    	// TODO
-    	System.out.println("Socket failed to create.");
-    }
+    // Send the query.
+	DNSQuery queryHandler = new DNSQuery(hostServer, fqdn, tracingOn);
+	queryHandler.query(hostServer, fqdn);
   } 
  
   private static void usage() { 
