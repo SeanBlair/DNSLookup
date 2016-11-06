@@ -8,12 +8,10 @@ import java.util.regex.Pattern;
 
 /**
  * @author Gurjot & Sean
- *
  */
 public class DNSQuery {
 	
 	private final int dnsPort = 53;
-	
 	private boolean resolvingNameServer = false;
 	private boolean tracingOn;
 	private int numQueries;
@@ -99,14 +97,16 @@ public class DNSQuery {
         		// Auth true && not CNAME: DONE - print results.
         		int finalTimeToLive = -1;
         		ArrayList<String> resolvedIPs = new ArrayList<String>();
+        		int ttlForCurrentQuery = 0;
         		try {
         			resolvedIPs = response.getAllAnswersData();
-        			ttlValues.add(response.getAnswersFirstResourceTTL());	// Save TTL.
+        			ttlForCurrentQuery = response.getAnswersFirstResourceTTL();
         		} catch (Exception e) {
         			exitProgram(originalFQDN + " -4 0.0.0.0");
         		}
 		        
-        		finalTimeToLive = getSmallestTTL();
+        		finalTimeToLive = getSmallestTTL(ttlForCurrentQuery);
+        		
 	        	String answer = "";
 	        	for (String ip : resolvedIPs) {
 	        		answer += originalFQDN + " " + finalTimeToLive + " " + ip + "\n";
@@ -134,16 +134,23 @@ public class DNSQuery {
 	}
 	
 	/**
-	 * @return The smallest TTL value in the ttlValues array.
+	 * @param ttlForCurrentQuery 		The current query's ttl.
+	 * @return  The smallest TTL value in the ttlValues array or current 
+	 * 			query's ttl if that is even smaller.
 	 */
-	private int getSmallestTTL() {
+	private int getSmallestTTL(int ttlForCurrentQuery) {
 		int minTTL = Integer.MAX_VALUE;
 		for(Integer i : ttlValues) {
 			if(i < minTTL) {
 				minTTL = i;
 			}
 		}
-		return minTTL;
+		
+		if(minTTL < ttlForCurrentQuery){
+			return minTTL;
+		} else {
+			return ttlForCurrentQuery;
+		}
 	}
 
 	private void exitProgram(String string) {
@@ -169,7 +176,7 @@ public class DNSQuery {
 	/**
 	 * @param requestBuffer		Request buffer that needs to be constructed.
 	 * @param fqdn				The fully qualified domain name.
-	 * @return The query ID.
+	 * @return 					The query ID.
 	 * 
 	 * Constructs DNS query.
 	 */
@@ -184,23 +191,23 @@ public class DNSQuery {
 		
 		long queryID = getUInt16(0, requestBuffer);
 		
-		// set next 16 bits to 0
+		// Set next 16 bits to 0
 		requestBuffer[index++] = 0;
 		requestBuffer[index++] = 0;
 		
-		//set Query Count (QDCOUNT) to 1
+		// Set Query Count (QDCOUNT) to 1
 		requestBuffer[index++] = 0;
 		requestBuffer[index++] = 1;
 		
-		// set Answer Count (ANCOUNT) to 0
+		// Set Answer Count (ANCOUNT) to 0
 		requestBuffer[index++] = 0;
 		requestBuffer[index++] = 0;
 		
-		// set Name Server Records (NSCOUNT) to 0
+		// Set Name Server Records (NSCOUNT) to 0
 		requestBuffer[index++] = 0;
 		requestBuffer[index++] = 0;
 		
-		// set Additional Record Count (ARCOUNT) to 0
+		// Set Additional Record Count (ARCOUNT) to 0
 		requestBuffer[index++] = 0;
 		requestBuffer[index++] = 0;
 		
@@ -214,7 +221,7 @@ public class DNSQuery {
 			}
 		}
 		
-		// end with 0 (1 byte only) (indicates end of QNAME	
+		// End with 0 (1 byte only) (indicates end of QNAME	
 		requestBuffer[index++] = 0;
 		
 		// QTYPE
