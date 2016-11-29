@@ -1,75 +1,75 @@
-Total before late penalty: [/58]
+Total before late penalty: [46/58]
 
 NOTE: in the marking report something left blank (e.g.  [ /6]) typically means
 that you got full marks for that item. 
 
-Functionality: [/28]
+Functionality: [22/28]
 
-   [/2] Basic query to a name server that is authoritative.
+   [2/2] Basic query to a name server that is authoritative.
    	(e.g. www.cs.ubc.ca to 198.162.35.1)
 
-   [/5] Basic Query that starts at root server and works to an
+   [5/5] Basic Query that starts at root server and works to an
    authoritative server but doesn't do anything
    strange. (e.g. www.cs.ubc.ca to a root name server)
 
-   [/5] A basic type query that results in a CNAME and the need to
+   [5/5] A basic type query that results in a CNAME and the need to
    restart the search for the alias. (e.g. prep.ai.mit.edu)
 
-   [/3] A query that returns a name server to use where the name
+   [3/3] A query that returns a name server to use where the name
    server's address isn't provided. (e.g. www.stanford.edu)
 
-   [/3] A complicated lookup series that potentially involves multiple
+   [3/3] A complicated lookup series that potentially involves multiple
    cnames and DNS server name lookups (finance.google.ca)
 
-   [/3] Can deal with information in the additional information
+   [1/3] Can deal with information in the additional information
    section when not all of it is of interest/use (e.g. groups.yahoo.com)
 
-   [/3] Can deal with unconventional but valid response records for
+   [0/3] Can deal with unconventional but valid response records for
    example uncompressed RR names, compression of the query name.
 
-   [/2] The TTL reported is the shortest TTL from the A record or any
+   [2/2] The TTL reported is the shortest TTL from the A record or any
    CNAMEs leading to that record.  
 
-   [/2] If a query returns more than IP address all IP addresses
+   [1/2] If a query returns more than IP address all IP addresses
    are printed.
 
 
-Error Handling: [/8]
+Error Handling: [5/8]
 
    In this next section there is 1 mark for detecting the error and
    another for properly printing the output
    
-   [/2] Timeout - nameserver doesn't respond
+   [0/2] Timeout - nameserver doesn't respond
 
-   [/2] Too many queries (e.g. loop1.csproject.org)
+   [2/2] Too many queries (e.g. loop1.csproject.org)
 
-   [/2] Name does not resolve returns 3  (e.g. wee.cs.ubc.ca)
+   [2/2] Name does not resolve returns 3  (e.g. wee.cs.ubc.ca)
 
-   [/2] Other types of errors (e.g. ca)
+   [1/2] Other types of errors (e.g. ca)
 
-Tracing: [/13]
+Tracing: [10/13]
 
-  [/2] Prints query ID, server being queried and FQDN
+  [1/2] Prints query ID, server being queried and FQDN
   
-  [/1] Query ID is different for every query during a run
+  [1/1] Query ID is different for every query during a run
   
-  [/1] Prints Response ID line, with query ID and whether or not this
+  [0/1] Prints Response ID line, with query ID and whether or not this
        is an authoritative response
 
-  [/2] Prints the counts for the Answers, Namservers, and Additional
+  [2/2] Prints the counts for the Answers, Namservers, and Additional
   Information fields. Format is as required
 
   Printing of the Response Records
 
-  [/2] Prints A in proper format
-  [/1] Prints AAAA  in proper format
-  [/1] Prints CNAMES in proper format
-  [/1] Prints NS in proper format
-  [/1] Prints type number if not in above
+  [2/2] Prints A in proper format
+  [1/1] Prints AAAA  in proper format
+  [1/1] Prints CNAMES in proper format
+  [1/1] Prints NS in proper format
+  [0/1] Prints type number if not in above
 
-  [/1] Prints TTL
+  [1/1] Prints TTL
 
-Broad Marking Criteria :                     [/9] 
+Broad Marking Criteria :                     [9/9] 
 See below for a detailed description of
 this marking criteria
      Readability        [/3]
