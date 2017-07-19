@@ -13,7 +13,7 @@ Developed and tested with Java 1.8 on a Linux ubuntu 14.04 LTS machine
 Running instructions:
 -------
 - Open a terminal and clone the repo: git clone https://github.com/SeanBlair/DNSLookup.git
-- Enter the folder: cd a2_o5v9a_t8z8
+- Enter the folder: cd DNSLookup
 - Use the makefile by typing "make", enter
 - Run the program: java -jar DNSlookup.jar [DNS name server] [fully qualified domain name] [optional trace flag (-t)]
 
